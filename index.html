@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoria de Integração — Ângulo Social</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="topo">
+  <div>
+    <h1>Auditoria de Integração</h1>
+    <div class="sub">Ângulo Social · Controle de documentos CLT e PJ</div>
+  </div>
+  <div class="espaco"></div>
+  <div class="conta">
+    <span id="rotuloFonte">—</span>
+    <button class="btn-topo" id="btnConectar" hidden>Entrar com conta Ângulo</button>
+    <button class="btn-topo" id="btnImportar">Importar planilha</button>
+    <button class="btn-topo" id="btnExportar">Exportar planilha</button>
+    <button class="btn-topo" id="btnAtualizar" hidden>Atualizar</button>
+  </div>
+</header>
+
+<div class="faixa-aviso" id="faixaAviso" hidden></div>
+
+<nav class="abas" role="tablist">
+  <button class="aba" role="tab" id="abaKanban"    aria-selected="true"  aria-controls="painelKanban">Kanban</button>
+  <button class="aba" role="tab" id="abaDashboard" aria-selected="false" aria-controls="painelDashboard">Dashboard</button>
+  <button class="aba" role="tab" id="abaLista"     aria-selected="false" aria-controls="painelLista">Lista</button>
+</nav>
+
+<div class="filtros">
+  <label for="filtroBusca">Buscar</label>
+  <input type="search" id="filtroBusca" placeholder="Nome, CPF, CNPJ ou cargo">
+
+  <label for="filtroCliente">Cliente</label>
+  <select id="filtroCliente"><option value="">Todos</option></select>
+
+  <label for="filtroTipo">Vínculo</label>
+  <select id="filtroTipo">
+    <option value="">Todos</option>
+    <option value="CLT">CLT</option>
+    <option value="PJ">PJ</option>
+  </select>
+
+  <label for="filtroAlerta">Situação</label>
+  <select id="filtroAlerta">
+    <option value="">Todas</option>
+    <option value="alerta">Somente com alerta</option>
+    <option value="incompleto">Documentação incompleta</option>
+    <option value="completo">Documentação completa</option>
+  </select>
+
+  <span class="contador-geral" id="contadorGeral"></span>
+</div>
+
+<main>
+  <section class="painel" id="painelKanban" role="tabpanel" aria-labelledby="abaKanban">
+    <div class="carregando" id="carregando">Carregando dados…</div>
+    <div class="kanban" id="kanban" hidden></div>
+  </section>
+
+  <section class="painel" id="painelDashboard" role="tabpanel" aria-labelledby="abaDashboard" hidden></section>
+
+  <section class="painel" id="painelLista" role="tabpanel" aria-labelledby="abaLista" hidden></section>
+</main>
+
+<footer class="rodape">
+  Ângulo Social · Consultoria e Projetos Socioambientais — Auditoria de Integração
+</footer>
+
+<!-- Painel de detalhes do colaborador -->
+<div class="fundo-modal" id="fundoModal" hidden></div>
+<aside class="gaveta" id="gaveta" hidden role="dialog" aria-modal="true" aria-labelledby="gavetaNome">
+  <div class="gaveta-topo">
+    <div>
+      <h2 id="gavetaNome"></h2>
+      <div class="sub" id="gavetaSub"></div>
+    </div>
+    <button class="btn-fechar" id="btnFecharGaveta" aria-label="Fechar">&times;</button>
+  </div>
+  <div class="gaveta-corpo" id="gavetaCorpo"></div>
+  <div class="gaveta-rodape">
+    <button class="btn-primario" id="btnSalvar">Salvar</button>
+    <button class="btn-secundario" id="btnCancelar">Cancelar</button>
+    <span class="aviso-salvo" id="avisoSalvo"></span>
+  </div>
+</aside>
+
+<input type="file" id="inputArquivo" accept=".xlsx,.xlsm" hidden>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

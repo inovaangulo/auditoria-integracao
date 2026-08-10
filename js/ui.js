@@ -1,0 +1,45 @@
+/** Utilitarios de interface compartilhados pelas telas. */
+
+/** Escapa texto vindo da planilha antes de entrar em innerHTML. */
+export function esc(valor) {
+  return String(valor ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export function el(tag, atributos = {}, filhos = []) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(atributos)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') node.className = v;
+    else if (k === 'texto') node.textContent = v;
+    else if (k === 'html') node.innerHTML = v;
+    else if (k.startsWith('on')) node.addEventListener(k.slice(2).toLowerCase(), v);
+    else node.setAttribute(k, v === true ? '' : v);
+  }
+  for (const f of [].concat(filhos)) {
+    if (f == null) continue;
+    node.append(f instanceof Node ? f : document.createTextNode(f));
+  }
+  return node;
+}
+
+export function limpar(node) {
+  while (node.firstChild) node.removeChild(node.firstChild);
+  return node;
+}
+
+/** Documento identificador para exibicao: CPF do CLT, CNPJ do PJ. */
+export function documentoDe(reg) {
+  const cpf = String(reg['CPF'] || '').trim();
+  const cnpj = String(reg['CNPJ (se PJ)'] || '').trim();
+  if (reg['Tipo'] === 'PJ') return cnpj || cpf || '—';
+  return cpf || cnpj || '—';
+}
+
+export function plural(n, singular, pluralPalavra) {
+  return `${n} ${n === 1 ? singular : pluralPalavra}`;
+}

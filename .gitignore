@@ -1,0 +1,14 @@
+# Dado pessoal (CPF/CNPJ/telefone) NUNCA vai para o repositório — ele é público.
+# A planilha real fica no SharePoint, atrás do login da Microsoft.
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+
+# Exportações geradas pelo app
+Painel_Controle_Integracao_*
+
+# Sistema operacional
+Thumbs.db
+desktop.ini
+.DS_Store
