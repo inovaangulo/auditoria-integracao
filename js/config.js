@@ -16,7 +16,7 @@
 export const CONFIG = {
   azure: {
     // Cole aqui o "ID do aplicativo (cliente)" do registro no Azure AD.
-    clientId: '',
+    clientId: '5b9ed096-52d8-4ff5-b880-92c71c6e38d8',
 
     // Dominio verificado do locatario. Restringe o login a contas da Angulo.
     authority: 'https://login.microsoftonline.com/angulosocial.com',
