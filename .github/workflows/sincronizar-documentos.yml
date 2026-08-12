@@ -1,0 +1,23 @@
+name: Sincronizar documentos dos colaboradores
+
+# Por enquanto so' com gatilho manual (workflow_dispatch), para testar antes
+# de agendar de verdade. A Parte C (rotina automatica) adiciona um `schedule:`
+# aqui quando o teste manual estiver validado.
+on:
+  workflow_dispatch:
+
+# id-token: write e' o que permite trocar a identidade deste job por um token
+# do Microsoft Graph, sem nenhum segredo guardado no GitHub.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  sincronizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node scripts/sincronizar-documentos.mjs

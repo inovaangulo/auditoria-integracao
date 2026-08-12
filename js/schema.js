@@ -71,32 +71,48 @@ export const COLUNAS_CALCULADAS = new Set([
 
 export const VALORES_DOC = ['Recebido', 'Pendente', 'Não se aplica'];
 
+// `abrevs`: os codigos de TIPODOC aceitos no nome do arquivo
+// (padrao CPF/CNPJ_Nome_TIPODOC), usados pela sincronizacao automatica com
+// pastas do SharePoint. Mais de um codigo pode apontar para o mesmo campo
+// (ex.: RG e CNH satisfazem "RG ou CNH"); o primeiro da lista e' o preferido
+// na hora de nomear um arquivo novo.
 export const DOCUMENTOS = [
-  { campo: 'Doc: RG ou CNH',                          label: 'RG ou CNH',                       vinculo: 'todos' },
-  { campo: 'Doc: Comprovante de Endereço',            label: 'Comprovante de Endereço',         vinculo: 'todos' },
-  { campo: 'Doc: Ordem de Serviço',                   label: 'Ordem de Serviço',                vinculo: 'todos' },
-  { campo: 'Doc: Ficha de Entrega de EPI',            label: 'Ficha de Entrega de EPI',         vinculo: 'todos' },
-  { campo: 'Doc: Treinamento NR-18',                  label: 'Treinamento NR-18',               vinculo: 'todos' },
-  { campo: 'Doc: Treinamento NR-06',                  label: 'Treinamento NR-06',               vinculo: 'todos' },
-  { campo: 'Doc: ASO',                                label: 'ASO',                             vinculo: 'todos' },
-  { campo: 'Doc: Foto',                               label: 'Foto',                            vinculo: 'todos' },
+  { campo: 'Doc: RG ou CNH',                          label: 'RG ou CNH',                       vinculo: 'todos', abrevs: ['RG', 'CNH'] },
+  { campo: 'Doc: Comprovante de Endereço',            label: 'Comprovante de Endereço',         vinculo: 'todos', abrevs: ['ENDERECO'] },
+  { campo: 'Doc: Ordem de Serviço',                   label: 'Ordem de Serviço',                vinculo: 'todos', abrevs: ['OS'] },
+  { campo: 'Doc: Ficha de Entrega de EPI',            label: 'Ficha de Entrega de EPI',         vinculo: 'todos', abrevs: ['EPI'] },
+  { campo: 'Doc: Treinamento NR-18',                  label: 'Treinamento NR-18',               vinculo: 'todos', abrevs: ['NR18'] },
+  { campo: 'Doc: Treinamento NR-06',                  label: 'Treinamento NR-06',               vinculo: 'todos', abrevs: ['NR06'] },
+  { campo: 'Doc: ASO',                                label: 'ASO',                             vinculo: 'todos', abrevs: ['ASO'] },
+  { campo: 'Doc: Foto',                               label: 'Foto',                            vinculo: 'todos', abrevs: ['FOTO'] },
   { campo: 'Doc: CNH (condicional - só quando a função exige)',
-    label: 'CNH (só se a função exige)', vinculo: 'todos', condicional: true },
+    label: 'CNH (só se a função exige)', vinculo: 'todos', condicional: true, abrevs: ['CNH'] },
 
-  { campo: 'Doc: Carteira de Trabalho (CLT)',         label: 'Carteira de Trabalho (CTPS)',     vinculo: 'CLT' },
-  { campo: 'Doc: Cadastro no eSocial (CLT)',          label: 'Cadastro no eSocial',             vinculo: 'CLT' },
+  { campo: 'Doc: Carteira de Trabalho (CLT)',         label: 'Carteira de Trabalho (CTPS)',     vinculo: 'CLT', abrevs: ['CTPS'] },
+  { campo: 'Doc: Cadastro no eSocial (CLT)',          label: 'Cadastro no eSocial',             vinculo: 'CLT', abrevs: ['ESOCIAL'] },
 
-  { campo: 'Doc: CCMEI (PJ)',                         label: 'CCMEI',                           vinculo: 'PJ' },
-  { campo: 'Doc: Contrato de Prestação de Serviço (PJ)', label: 'Contrato de Prestação de Serviço', vinculo: 'PJ' },
-  { campo: 'Doc: APR (PJ)',                           label: 'APR (Análise Preliminar de Risco)', vinculo: 'PJ' },
+  { campo: 'Doc: CCMEI (PJ)',                         label: 'CCMEI',                           vinculo: 'PJ', abrevs: ['CCMEI'] },
+  { campo: 'Doc: Contrato de Prestação de Serviço (PJ)', label: 'Contrato de Prestação de Serviço', vinculo: 'PJ', abrevs: ['CONTRATO'] },
+  { campo: 'Doc: APR (PJ)',                           label: 'APR (Análise Preliminar de Risco)', vinculo: 'PJ', abrevs: ['APR'] },
   { campo: 'Doc: Declaração Atendimento Leis Trabalhistas (PJ)',
-    label: 'Declaração de Atendimento às Leis Trabalhistas', vinculo: 'PJ' },
+    label: 'Declaração de Atendimento às Leis Trabalhistas', vinculo: 'PJ', abrevs: ['DECLLEIS'] },
   { campo: 'Doc: Declaração Inexistência de Vínculo (PJ)',
-    label: 'Declaração de Inexistência de Vínculo', vinculo: 'PJ' },
+    label: 'Declaração de Inexistência de Vínculo', vinculo: 'PJ', abrevs: ['DECLVINCULO'] },
   { campo: 'Doc: Declaração Inexistência de Riscos (PJ)',
-    label: 'Declaração de Inexistência de Riscos', vinculo: 'PJ' },
-  { campo: 'Doc: Relação dos Alojamentos (PJ)',       label: 'Relação dos Alojamentos',         vinculo: 'PJ' },
+    label: 'Declaração de Inexistência de Riscos', vinculo: 'PJ', abrevs: ['DECLRISCOS'] },
+  { campo: 'Doc: Relação dos Alojamentos (PJ)',       label: 'Relação dos Alojamentos',         vinculo: 'PJ', abrevs: ['ALOJAMENTO'] },
 ];
+
+/** Mapa TIPODOC (maiusculo, sem acento) -> lista de campos que ele satisfaz. */
+export const CAMPOS_POR_ABREV = (() => {
+  const mapa = {};
+  for (const doc of DOCUMENTOS) {
+    for (const abrev of doc.abrevs || []) {
+      (mapa[abrev] ||= []).push(doc.campo);
+    }
+  }
+  return mapa;
+})();
 
 /** Documentos exigidos do vinculo informado (CLT ou PJ). */
 export function documentosDoVinculo(tipo) {

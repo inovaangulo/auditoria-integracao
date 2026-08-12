@@ -39,6 +39,23 @@ export const CONFIG = {
 
   /** Quantas alteracoes guardar no historico de cada colaborador. */
   limiteHistorico: 30,
+
+  /**
+   * ID do locatario (Entra ID) da Angulo Social. Usado pelo script de
+   * sincronizacao (scripts/sincronizar-documentos.mjs) para trocar o token
+   * OIDC do GitHub Actions por um token do Microsoft Graph.
+   */
+  tenantId: '51a014a5-c7a0-451b-86d1-658222d9c5bd',
+
+  /**
+   * Onde ficam as pastas de documentos por colaborador (sincronizacao
+   * automatica com o SharePoint). Site diferente do da planilha - por isso
+   * tem o proprio siteId, obtido via Graph Explorer.
+   */
+  pastasColaboradores: {
+    siteId: 'angulosocialbr.sharepoint.com,f34035fd-91eb-43fc-9239-ed17c5a7a20c,98a989fd-111a-4ae0-abf1-78f06ad993c4',
+    pastaBase: 'TESTES_IA_ADM',
+  },
 };
 
 export const MODO_SHAREPOINT = Boolean(CONFIG.azure.clientId);
