@@ -241,6 +241,10 @@ async function main() {
     }
 
     const arquivos = await listarArquivos(token, pasta);
+    if (arquivos.length) {
+      const tipos = arquivos.map((a) => `${a} -> ${tipoDoArquivo(a) || '(sem TIPODOC)'}`);
+      console.log(`  ${registro['Nome completo']}: ${tipos.join(' | ')}`);
+    }
     const mudou = aplicarDeteccao(registro, arquivos);
     if (mudou) {
       const atualizado = recalcular(registro);
