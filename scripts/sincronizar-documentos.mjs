@@ -97,8 +97,13 @@ async function chamar(token, url, opcoes = {}) {
 // Nomeacao de pasta/arquivo
 // ---------------------------------------------------------------------------
 
-function apenasDigitos(s) {
-  return String(s || '').replace(/\D/g, '');
+/**
+ * Mantem a pontuacao do CPF/CNPJ (ajuda a diferenciar um do outro de cara),
+ * so' troca "/" por "-" porque SharePoint/OneDrive proibem barra em nome de
+ * pasta ou arquivo - e o CNPJ tem uma barra (ex.: 12.345.678/0001-90).
+ */
+function paraNomeDeArquivo(s) {
+  return String(s || '').trim().replace(/\//g, '-');
 }
 
 function normalizarNome(s) {
@@ -106,7 +111,7 @@ function normalizarNome(s) {
 }
 
 function nomePasta(registro) {
-  const doc = apenasDigitos(registro['CPF'] || registro['CNPJ (se PJ)']);
+  const doc = paraNomeDeArquivo(registro['CPF'] || registro['CNPJ (se PJ)']);
   return `${doc}_${normalizarNome(registro['Nome completo'])}`;
 }
 
