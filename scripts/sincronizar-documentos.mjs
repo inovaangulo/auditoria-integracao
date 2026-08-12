@@ -1,20 +1,28 @@
 #!/usr/bin/env node
 /**
- * Sincroniza as pastas de documentos dos colaboradores no SharePoint com a
- * planilha de auditoria.
+ * Audita as pastas de documentos dos colaboradores no SharePoint contra a
+ * planilha - e atualiza o status dos documentos encontrados.
  *
  * Convencao (definida pela Sara em 12/08/2026):
- *   pasta:   {CPF ou CNPJ so numeros}_{Nome completo, espacos -> underscore}
+ *   pasta:   {CPF ou CNPJ com pontuacao, so' a barra do CNPJ vira "-"}_{Nome completo, espacos -> underscore}
  *   arquivo: {mesma coisa}_{TIPODOC}.ext   (TIPODOC = ultimo trecho do nome,
- *            antes da extensao - ex.: "111222333_Ana_Paula_ASO.pdf")
+ *            antes da extensao - ex.: "111.222.333-44_Ana_Paula_ASO.pdf")
  *
- * Para cada colaborador da planilha:
- *   1. Garante que a pasta existe no SharePoint (cria se faltar).
- *   2. Le os nomes dos arquivos dentro da pasta.
- *   3. Para cada arquivo cujo TIPODOC bate com CAMPOS_POR_ABREV (schema.js),
- *      marca o campo correspondente como "Recebido".
- *   4. Se algo mudou, recalcula as colunas derivadas e grava a linha de volta
- *      na planilha.
+ * As PASTAS SAO CRIADAS PELAS PESSOAS, nao pelo script (mudanca de 12/08/2026 -
+ * antes o script criava automaticamente). O script so' confere:
+ *
+ *   1. Para cada colaborador da planilha, procura uma pasta cujo CPF/CNPJ
+ *      (so' os digitos, ignorando pontuacao) bata com o dele.
+ *      - Nao achou nenhuma -> reporta "faltando" (a pessoa ainda nao criou).
+ *      - Achou, mas o nome completo da pasta nao e' exatamente o esperado
+ *        -> reporta "nome diferente" (possivel erro de digitacao), mas
+ *        continua conferindo os documentos dentro mesmo assim.
+ *   2. Le os arquivos dentro da pasta encontrada. Para cada um cujo TIPODOC
+ *      bate com CAMPOS_POR_ABREV (schema.js), marca o campo correspondente
+ *      como "Recebido" e grava de volta na planilha.
+ *   3. Reporta tambem pastas que existem mas nao correspondem a nenhum
+ *      colaborador da planilha (podem ser erro de CPF/CNPJ, ou pessoa que
+ *      ainda nao foi cadastrada).
  *
  * So' ADICIONA confirmacoes - nunca apaga ou rebaixa um status que ja' estava
  * marcado (ex.: nao troca "Nao se aplica" de volta para vazio so' porque o
@@ -106,6 +114,11 @@ function paraNomeDeArquivo(s) {
   return String(s || '').trim().replace(/\//g, '-');
 }
 
+/** So' os digitos - usado para achar a pasta certa mesmo com pontuacao diferente. */
+function apenasDigitos(s) {
+  return String(s || '').replace(/\D/g, '');
+}
+
 function normalizarNome(s) {
   return String(s || '').trim().replace(/\s+/g, '_');
 }
@@ -132,22 +145,12 @@ function codificarCaminho(caminho) {
 // Pastas de documentos (site "admin" / TESTES_IA_ADM)
 // ---------------------------------------------------------------------------
 
-/** Garante que a pasta do colaborador existe. Devolve true se já existia. */
-async function garantirPasta(token, nomeDaPasta) {
+/** Lista as pastas de colaborador que ja existem dentro da pasta base. */
+async function listarPastas(token) {
   const { siteId, pastaBase } = CONFIG.pastasColaboradores;
-  const caminho = `${pastaBase}/${nomeDaPasta}`;
-  const urlMeta = `${GRAPH}/sites/${siteId}/drive/root:/${codificarCaminho(caminho)}`;
-
-  const resp = await fetch(urlMeta, { headers: { Authorization: `Bearer ${token}` } });
-  if (resp.ok) return true;
-  if (resp.status !== 404) throw new Error(`Erro ao verificar a pasta ${caminho}: ${resp.status} ${await resp.text()}`);
-
-  const urlCriar = `${GRAPH}/sites/${siteId}/drive/root:/${codificarCaminho(pastaBase)}:/children`;
-  await chamar(token, urlCriar, {
-    method: 'POST',
-    body: JSON.stringify({ name: nomeDaPasta, folder: {}, '@microsoft.graph.conflictBehavior': 'fail' }),
-  });
-  return false;
+  const url = `${GRAPH}/sites/${siteId}/drive/root:/${codificarCaminho(pastaBase)}:/children?$select=name,folder`;
+  const dados = await chamar(token, url);
+  return (dados.value || []).filter((item) => item.folder).map((item) => item.name);
 }
 
 async function listarArquivos(token, nomeDaPasta) {
@@ -227,20 +230,43 @@ async function main() {
   const registros = await lerPlanilha(token);
   console.log(`${registros.length} colaborador(es) encontrado(s).`);
 
-  let pastasCriadas = 0;
+  console.log('Listando pastas em TESTES_IA_ADM...');
+  const pastasExistentes = await listarPastas(token);
+
+  // Indexa as pastas reais pelos digitos do CPF/CNPJ - e' o dado mais
+  // confiavel para achar a pasta certa mesmo se o nome tiver erro de digitacao.
+  const pastaPorDigitos = new Map();
+  for (const pasta of pastasExistentes) {
+    const digitos = apenasDigitos(pasta);
+    if (digitos) pastaPorDigitos.set(digitos, pasta);
+  }
+
+  const usadas = new Set();
+  let conferem = 0;
+  let comNomeDiferente = 0;
+  let faltando = 0;
   let colaboradoresAtualizados = 0;
 
   for (const registro of registros) {
-    const pasta = nomePasta(registro);
+    const esperado = nomePasta(registro);
+    const digitos = apenasDigitos(registro['CPF'] || registro['CNPJ (se PJ)']);
+    const real = pastaPorDigitos.get(digitos);
 
-    const jaExistia = await garantirPasta(token, pasta);
-    if (!jaExistia) {
-      pastasCriadas++;
-      console.log(`Pasta criada para ${registro['Nome completo']}: ${pasta}`);
-      continue; // pasta acabou de nascer, ainda sem arquivo - nada a sincronizar
+    if (!real) {
+      faltando++;
+      console.log(`FALTANDO: ${registro['Nome completo']} - nenhuma pasta com o CPF/CNPJ ${digitos} foi encontrada (esperada: "${esperado}").`);
+      continue;
+    }
+    usadas.add(real);
+
+    if (real === esperado) {
+      conferem++;
+    } else {
+      comNomeDiferente++;
+      console.log(`NOME DIFERENTE: ${registro['Nome completo']} - pasta encontrada "${real}", esperada "${esperado}".`);
     }
 
-    const arquivos = await listarArquivos(token, pasta);
+    const arquivos = await listarArquivos(token, real);
     if (arquivos.length) {
       const tipos = arquivos.map((a) => `${a} -> ${tipoDoArquivo(a) || '(sem TIPODOC)'}`);
       console.log(`  ${registro['Nome completo']}: ${tipos.join(' | ')}`);
@@ -250,13 +276,18 @@ async function main() {
       const atualizado = recalcular(registro);
       await escreverLinha(token, atualizado);
       colaboradoresAtualizados++;
-      console.log(`Atualizado: ${registro['Nome completo']}`);
+      console.log(`  Atualizado na planilha: ${registro['Nome completo']}`);
     }
   }
 
+  const orfas = pastasExistentes.filter((p) => !usadas.has(p));
+  if (orfas.length) {
+    console.log(`\nPastas sem colaborador correspondente na planilha (confira o CPF/CNPJ): ${orfas.join(', ')}`);
+  }
+
   console.log(
-    `\nResumo: ${pastasCriadas} pasta(s) nova(s) criada(s), ` +
-    `${colaboradoresAtualizados} colaborador(es) atualizado(s) na planilha.`
+    `\nResumo: ${conferem} pasta(s) conferindo, ${comNomeDiferente} com nome diferente do esperado, ` +
+    `${faltando} colaborador(es) sem pasta, ${colaboradoresAtualizados} atualizado(s) na planilha.`
   );
 }
 
