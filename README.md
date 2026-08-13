@@ -151,6 +151,12 @@ js/
     kanban.js  detalhe.js  dashboard.js  lista.js
 exemplo/
   dados-exemplo.json    Dados fictícios para demonstração
+scripts/
+  sincronizar-documentos.mjs   Audita as pastas de documentos no SharePoint (ver abaixo)
+.github/workflows/
+  sincronizar-documentos.yml   Dispara o script acima (hoje só manual)
+.claude/skills/
+  sincronizar-documentos-sharepoint/SKILL.md   Documentação completa da sincronização
 ```
 
 **Mudou uma coluna na planilha?** Atualize `js/schema.js` na mesma posição — a
@@ -158,6 +164,30 @@ ordem de `COLUNAS` precisa espelhar a planilha de A até AT, porque é por posi�
 que a linha vira registro e volta.
 
 **Mudou um prazo?** `PARAMETROS` em `js/schema.js`.
+
+---
+
+## Sincronização automática com pastas do SharePoint
+
+Além da ficha do colaborador, cada um tem uma pasta de documentos no
+SharePoint (site "admin", biblioteca TESTES_IA_ADM), no padrão
+`CPF/CNPJ_Nome completo` — as pessoas criam a própria pasta e sobem os
+arquivos no padrão `CPF/CNPJ_Nome completo_TIPODOC.ext` (ex.:
+`111.222.333-44_Ana_Paula_Ribeiro_ASO.pdf`).
+
+Um script (`scripts/sincronizar-documentos.mjs`) audita essas pastas contra
+a planilha: confere se cada colaborador tem uma pasta com o CPF/CNPJ certo,
+aponta pasta faltando ou com nome diferente do esperado, e marca como
+"Recebido" cada documento cujo arquivo for encontrado. Autentica sem senha
+nenhuma, via credencial federada com o GitHub Actions.
+
+Por enquanto só roda quando alguém clica em **"Run workflow"** na aba
+[Actions](https://github.com/inovaangulo/auditoria-integracao/actions) do
+repositório — agendar para rodar sozinho é o próximo passo.
+
+Guia completo (convenção de nomes, como interpretar o relatório, como
+adicionar um novo tipo de documento, como diagnosticar problemas):
+[`.claude/skills/sincronizar-documentos-sharepoint/SKILL.md`](.claude/skills/sincronizar-documentos-sharepoint/SKILL.md).
 
 ---
 
