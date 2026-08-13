@@ -169,17 +169,19 @@ que a linha vira registro e volta.
 
 ## Sincronização automática com pastas do SharePoint
 
-Além da ficha do colaborador, cada um tem uma pasta de documentos no
-SharePoint (site "admin", biblioteca TESTES_IA_ADM), no padrão
-`CPF/CNPJ_Nome completo` — as pessoas criam a própria pasta e sobem os
-arquivos no padrão `CPF/CNPJ_Nome completo_TIPODOC.ext` (ex.:
+A pasta de documentos no SharePoint (site "admin", biblioteca TESTES_IA_ADM)
+é o ponto de entrada de um colaborador novo: quando a profissional da ADM
+cria a pasta no padrão `CPF/CNPJ_Nome completo`, o script cadastra a linha
+correspondente na planilha sozinho — **a planilha não precisa ter ninguém
+cadastrado antes**. Os documentos entram no padrão
+`CPF/CNPJ_Nome completo_TIPODOC.ext` (ex.:
 `111.222.333-44_Ana_Paula_Ribeiro_ASO.pdf`).
 
-Um script (`scripts/sincronizar-documentos.mjs`) audita essas pastas contra
-a planilha: confere se cada colaborador tem uma pasta com o CPF/CNPJ certo,
-aponta pasta faltando ou com nome diferente do esperado, e marca como
-"Recebido" cada documento cujo arquivo for encontrado. Autentica sem senha
-nenhuma, via credencial federada com o GitHub Actions.
+Um script (`scripts/sincronizar-documentos.mjs`) cuida disso: cadastra
+colaborador novo a partir da pasta, corrige o nome da pasta se o CPF/CNPJ já
+identificar quem é, e marca como "Recebido" cada documento cujo arquivo for
+encontrado. Autentica sem senha nenhuma, via credencial federada com o
+GitHub Actions.
 
 Por enquanto só roda quando alguém clica em **"Run workflow"** na aba
 [Actions](https://github.com/inovaangulo/auditoria-integracao/actions) do

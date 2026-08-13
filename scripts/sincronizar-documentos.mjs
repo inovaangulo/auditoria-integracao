@@ -1,31 +1,38 @@
 #!/usr/bin/env node
 /**
- * Audita as pastas de documentos dos colaboradores no SharePoint contra a
- * planilha - e atualiza o status dos documentos encontrados.
+ * Audita as pastas de documentos dos colaboradores no SharePoint e usa a
+ * PASTA como o sinal de entrada de um colaborador novo - a planilha comeca
+ * vazia e cresce conforme as pastas aparecem (mudanca de 13/08/2026, pedido
+ * da Sara: "quero que inicialmente a planilha nao tenha dados de nenhum
+ * colaborador... isso sinaliza um novo colaborador entrando").
  *
  * Convencao (definida pela Sara em 12/08/2026):
  *   pasta:   {CPF ou CNPJ com pontuacao, so' a barra do CNPJ vira "-"}_{Nome completo, espacos -> underscore}
  *   arquivo: {mesma coisa}_{TIPODOC}.ext   (TIPODOC = ultimo trecho do nome,
  *            antes da extensao - ex.: "111.222.333-44_Ana_Paula_ASO.pdf")
  *
- * As PASTAS SAO CRIADAS PELAS PESSOAS (profissionais da ADM), nao pelo
- * script (mudanca de 12/08/2026 - antes o script criava automaticamente).
- * O script:
+ * As PASTAS SAO CRIADAS PELAS PROFISSIONAIS DA ADM, nao pelo script. Para
+ * cada pasta encontrada em TESTES_IA_ADM:
  *
- *   1. Para cada colaborador da planilha, procura uma pasta cujo CPF/CNPJ
- *      (so' os digitos, ignorando pontuacao) bata com o dele.
- *      - Nao achou nenhuma -> reporta "faltando" (a pessoa ainda nao criou).
+ *   1. Extrai o CPF/CNPJ e o nome do proprio nome da pasta.
+ *      - Nao tem 11 nem 14 digitos -> pasta "nao reconhecida", ignorada
+ *        (nao cria nada - o formato precisa estar certo para confiar nele).
+ *   2. Procura na planilha um colaborador com esse CPF/CNPJ.
+ *      - Nao achou -> COLABORADOR NOVO: cria uma linha na planilha (Nome,
+ *        CPF ou CNPJ, Tipo inferido pelo formato do documento - CPF de 11
+ *        digitos = CLT, CNPJ de 14 = PJ - e Status atual = "Documento em
+ *        elaboracao", a primeira coluna do Kanban).
  *      - Achou, mas o nome completo da pasta nao e' exatamente o esperado
- *        -> RENOMEIA a pasta para o padrao certo (13/08/2026). Seguro fazer
- *        isso porque o CPF/CNPJ ja' identificou com certeza de quem e' a
- *        pasta - so' o nome escrito pela pessoa estava errado/incompleto.
- *   2. Le os arquivos dentro da pasta (ja' com o nome corrigido, se foi o
+ *        -> RENOMEIA a pasta para o padrao certo. Seguro fazer isso porque
+ *        o CPF/CNPJ ja' identificou com certeza de quem e' a pasta - so' o
+ *        nome escrito pela pessoa estava errado/incompleto.
+ *   3. Le os arquivos dentro da pasta (ja' com o nome corrigido, se foi o
  *      caso). Para cada um cujo TIPODOC bate com CAMPOS_POR_ABREV
  *      (schema.js), marca o campo correspondente como "Recebido" e grava de
  *      volta na planilha.
- *   3. Reporta tambem pastas que existem mas nao correspondem a nenhum
- *      colaborador da planilha (podem ser erro de CPF/CNPJ, ou pessoa que
- *      ainda nao foi cadastrada) - essas NAO sao tocadas, so' reportadas.
+ *   4. Reporta tambem colaboradores que ja estao na planilha mas nao tem
+ *      pasta correspondente (raro nesse fluxo, mas pode acontecer se a
+ *      pasta for apagada depois).
  *
  * So' ADICIONA confirmacoes - nunca apaga ou rebaixa um status que ja' estava
  * marcado (ex.: nao troca "Nao se aplica" de volta para vazio so' porque o
@@ -43,7 +50,7 @@
  */
 
 import { CONFIG } from '../js/config.js';
-import { COLUNAS, CAMPOS_POR_ABREV } from '../js/schema.js';
+import { COLUNAS, CAMPOS_POR_ABREV, registroVazio } from '../js/schema.js';
 import { linhaParaRegistro, registroParaLinha } from '../js/dados/planilha.js';
 import { recalcular } from '../js/regras.js';
 
@@ -129,6 +136,48 @@ function normalizarNome(s) {
 function nomePasta(registro) {
   const doc = paraNomeDeArquivo(registro['CPF'] || registro['CNPJ (se PJ)']);
   return `${doc}_${normalizarNome(registro['Nome completo'])}`;
+}
+
+/**
+ * Devolve o CNPJ com a barra de volta no lugar certo (ela virou "-" para
+ * poder aparecer em nome de pasta/arquivo). Ex.: "12.345.678-0001-90" ->
+ * "12.345.678/0001-90". Se o formato vier diferente do esperado, devolve
+ * como recebeu - melhor um CNPJ estranho na planilha do que o script quebrar.
+ */
+function reconstituirCnpj(doc) {
+  const m = doc.match(/^(\d{2}\.\d{3}\.\d{3})-(\d{4})-(\d{2})$/);
+  return m ? `${m[1]}/${m[2]}-${m[3]}` : doc;
+}
+
+/**
+ * Le o CPF/CNPJ e o nome completo direto do nome da pasta (o inverso de
+ * nomePasta). Devolve null se o numero de digitos nao bate com CPF (11) nem
+ * CNPJ (14) - nesse caso e' mais seguro nao criar nada do que arriscar um
+ * cadastro errado.
+ */
+function novoRegistroDaPasta(nomeDaPasta) {
+  const i = nomeDaPasta.indexOf('_');
+  if (i < 0) return null;
+
+  const doc = nomeDaPasta.slice(0, i);
+  const nome = nomeDaPasta.slice(i + 1).replace(/_/g, ' ').trim();
+  const digitos = apenasDigitos(doc);
+  if (!nome) return null;
+
+  const registro = registroVazio();
+  registro['Nome completo'] = nome;
+  registro['Status atual'] = 'Documento em elaboração';
+
+  if (digitos.length === 11) {
+    registro['Tipo'] = 'CLT';
+    registro['CPF'] = doc;
+  } else if (digitos.length === 14) {
+    registro['Tipo'] = 'PJ';
+    registro['CNPJ (se PJ)'] = reconstituirCnpj(doc);
+  } else {
+    return null;
+  }
+  return registro;
 }
 
 /** TIPODOC = ultimo trecho do nome do arquivo, antes da extensao, sem acento. */
@@ -246,57 +295,70 @@ async function main() {
 
   console.log('Lendo a planilha...');
   const registros = await lerPlanilha(token);
-  console.log(`${registros.length} colaborador(es) encontrado(s).`);
+  console.log(`${registros.length} colaborador(es) já na planilha.`);
 
   console.log('Listando pastas em TESTES_IA_ADM...');
   const pastasExistentes = await listarPastas(token);
+  console.log(`${pastasExistentes.length} pasta(s) encontrada(s).`);
 
-  // Indexa as pastas reais pelos digitos do CPF/CNPJ - e' o dado mais
-  // confiavel para achar a pasta certa mesmo se o nome tiver erro de digitacao.
-  const pastaPorDigitos = new Map();
-  for (const pasta of pastasExistentes) {
-    const digitos = apenasDigitos(pasta);
-    if (digitos) pastaPorDigitos.set(digitos, pasta);
+  // Indexa a planilha pelos digitos do CPF/CNPJ - e' o dado mais confiavel
+  // para casar pasta com colaborador, mesmo se o nome tiver erro de digitacao.
+  const registroPorDigitos = new Map();
+  for (const r of registros) {
+    const d = apenasDigitos(r['CPF'] || r['CNPJ (se PJ)']);
+    if (d) registroPorDigitos.set(d, r);
   }
+  const digitosIniciais = new Set(registroPorDigitos.keys());
 
   const usadas = new Set();
+  let novosColaboradores = 0;
   let conferem = 0;
   let nomesCorrigidos = 0;
   let falhasAoCorrigir = 0;
-  let faltando = 0;
+  let naoReconhecidas = 0;
   let colaboradoresAtualizados = 0;
+  let proximaLinha = registros.length + 2; // 1 = cabecalho
 
-  for (const registro of registros) {
-    const esperado = nomePasta(registro);
-    const digitos = apenasDigitos(registro['CPF'] || registro['CNPJ (se PJ)']);
-    const encontrada = pastaPorDigitos.get(digitos);
+  for (const pasta of pastasExistentes) {
+    const digitos = apenasDigitos(pasta);
+    let registro = digitos ? registroPorDigitos.get(digitos) : null;
+    let pastaAtual = pasta;
 
-    if (!encontrada) {
-      faltando++;
-      console.log(`FALTANDO: ${registro['Nome completo']} - nenhuma pasta com o CPF/CNPJ ${digitos} foi encontrada (esperada: "${esperado}").`);
-      continue;
-    }
-    usadas.add(encontrada);
-
-    // pastaAtual segue o nome que existe de fato no SharePoint - so' muda
-    // para "esperado" se a correcao abaixo der certo.
-    let pastaAtual = encontrada;
-
-    if (encontrada === esperado) {
-      conferem++;
+    if (!registro) {
+      // Sem colaborador correspondente na planilha - a pasta em si e' o
+      // sinal de que alguem novo esta entrando. So' cria se o nome da pasta
+      // realmente tiver um CPF/CNPJ valido (11 ou 14 digitos); senao, ignora.
+      const novo = novoRegistroDaPasta(pasta);
+      if (!novo) {
+        naoReconhecidas++;
+        console.log(`NAO RECONHECIDA: pasta "${pasta}" não tem um CPF/CNPJ válido no nome - ignorada.`);
+        continue;
+      }
+      novo.__linha = proximaLinha++;
+      registro = recalcular(novo);
+      await escreverLinha(token, registro);
+      novosColaboradores++;
+      registroPorDigitos.set(digitos, registro);
+      console.log(`NOVO COLABORADOR: ${registro['Nome completo']} (${registro['Tipo']}) cadastrado a partir da pasta "${pasta}".`);
     } else {
-      // O CPF/CNPJ ja bateu com este colaborador, entao renomear e' seguro -
-      // nao ha risco de "roubar" a pasta de outra pessoa por coincidencia de nome.
-      try {
-        await renomearPasta(token, encontrada, esperado);
-        pastaAtual = esperado;
-        nomesCorrigidos++;
-        console.log(`NOME CORRIGIDO: ${registro['Nome completo']} - pasta renomeada de "${encontrada}" para "${esperado}".`);
-      } catch (err) {
-        falhasAoCorrigir++;
-        console.log(`NAO FOI POSSIVEL CORRIGIR O NOME: ${registro['Nome completo']} - pasta "${encontrada}" deveria ser "${esperado}": ${err.message}`);
+      const esperado = nomePasta(registro);
+      if (pasta === esperado) {
+        conferem++;
+      } else {
+        // O CPF/CNPJ ja bateu com este colaborador, entao renomear e' seguro -
+        // nao ha risco de "roubar" a pasta de outra pessoa por coincidencia de nome.
+        try {
+          await renomearPasta(token, pasta, esperado);
+          pastaAtual = esperado;
+          nomesCorrigidos++;
+          console.log(`NOME CORRIGIDO: ${registro['Nome completo']} - pasta renomeada de "${pasta}" para "${esperado}".`);
+        } catch (err) {
+          falhasAoCorrigir++;
+          console.log(`NAO FOI POSSIVEL CORRIGIR O NOME: ${registro['Nome completo']} - pasta "${pasta}" deveria ser "${esperado}": ${err.message}`);
+        }
       }
     }
+    usadas.add(digitos);
 
     const arquivos = await listarArquivos(token, pastaAtual);
     if (arquivos.length) {
@@ -312,15 +374,17 @@ async function main() {
     }
   }
 
-  const orfas = pastasExistentes.filter((p) => !usadas.has(p));
-  if (orfas.length) {
-    console.log(`\nPastas sem colaborador correspondente na planilha (confira o CPF/CNPJ): ${orfas.join(', ')}`);
+  const semPasta = [...digitosIniciais].filter((d) => !usadas.has(d));
+  for (const d of semPasta) {
+    const r = registroPorDigitos.get(d);
+    console.log(`SEM PASTA: ${r['Nome completo']} - já está na planilha, mas nenhuma pasta correspondente foi encontrada.`);
   }
 
   console.log(
-    `\nResumo: ${conferem} pasta(s) já conferindo, ${nomesCorrigidos} nome(s) corrigido(s), ` +
-    `${falhasAoCorrigir} falha(s) ao corrigir, ${faltando} colaborador(es) sem pasta, ` +
-    `${colaboradoresAtualizados} atualizado(s) na planilha.`
+    `\nResumo: ${novosColaboradores} colaborador(es) novo(s) cadastrado(s), ` +
+    `${conferem} pasta(s) já conferindo, ${nomesCorrigidos} nome(s) corrigido(s), ` +
+    `${falhasAoCorrigir} falha(s) ao corrigir, ${naoReconhecidas} pasta(s) não reconhecida(s), ` +
+    `${semPasta.length} colaborador(es) sem pasta, ${colaboradoresAtualizados} atualizado(s) na planilha.`
   );
 }
 

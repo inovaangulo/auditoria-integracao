@@ -7,8 +7,11 @@ description: Audita as pastas de documentos de colaboradores no SharePoint (site
 
 Audita as pastas de colaboradores no SharePoint contra a planilha
 `Painel_Controle_Integracao_Trivia_Tabela.xlsx` (a mesma que [o app
-web](../../) usa) e marca como "Recebido" cada documento cujo arquivo for
-encontrado com o nome certo.
+web](../../) usa). **A pasta é o gatilho**: quando uma profissional da ADM
+cria a pasta de um colaborador novo, o script cadastra a linha
+correspondente na planilha sozinho — a planilha não precisa (e não deve) ter
+os dados de ninguém antes de a pasta existir. Depois disso, o script marca
+como "Recebido" cada documento cujo arquivo for encontrado com o nome certo.
 
 Faz parte do mesmo projeto do app web — **não é uma skill separada por
 acaso**: reaproveita `schema.js` e `regras.js` do app, então o checklist de
@@ -19,6 +22,7 @@ documentos e as regras de negócio são exatamente as mesmas dos dois lugares.
 - Testar a sincronização depois de mudar o script ou a convenção de nomes
 - Entender por que um colaborador não está aparecendo como "documentos
   completos" mesmo com o arquivo no SharePoint
+- Entender por que um colaborador novo não apareceu no Kanban
 - Adicionar um novo tipo de documento (TIPODOC) ao checklist
 - Diagnosticar uma pasta que não está sendo reconhecida
 
@@ -40,27 +44,30 @@ arquivo: {CPF ou CNPJ}_{Nome completo}_{TIPODOC}.ext
 Exemplo real (dados de teste, Trivia): `111.222.333-44_Ana_Paula_Ribeiro_ASO.pdf`
 dentro da pasta `111.222.333-44_Ana_Paula_Ribeiro`.
 
-## As pastas são criadas pelas profissionais da ADM, não pelo script
+## A pasta é o gatilho — a planilha nasce vazia e cresce sozinha
 
-Mudança de design em 12/08/2026: o script **não cria mais pastas
-automaticamente**. A profissional da ADM cria a pasta do colaborador e sobe
-os documentos; o script confere e corrige o nome se precisar:
+Mudança de design em 13/08/2026 (pedido da Sara): a planilha **começa sem
+nenhum colaborador**. É a profissional da ADM criando a pasta que sinaliza
+"chegou alguém novo". Para cada pasta encontrada em TESTES_IA_ADM, o script
+tenta extrair o CPF/CNPJ e o nome direto do nome da pasta, e decide:
 
-- **Faltando**: nenhuma pasta com aquele CPF/CNPJ foi encontrada — a pessoa
-  ainda não criou.
-- **Nome corrigido** (13/08/2026): achou uma pasta cujo CPF/CNPJ bate com um
-  colaborador da planilha, mas o nome completo estava diferente do padrão
-  (erro de digitação, abreviação, etc.) — o script **renomeia a pasta
-  automaticamente** para o padrão certo. É seguro fazer isso porque o
-  CPF/CNPJ já identificou com certeza a quem a pasta pertence; só o texto do
-  nome estava errado.
-- **Pasta sem colaborador correspondente**: existe uma pasta cujo CPF/CNPJ
-  não bate com nenhuma linha da planilha (pessoa não cadastrada, ou erro no
-  CPF/CNPJ digitado na pasta). Essa **não é tocada automaticamente** — só
-  reportada, porque sem CPF/CNPJ batendo não há como saber com segurança de
-  quem é.
+- **Colaborador novo**: nenhuma linha da planilha tem esse CPF/CNPJ ainda —
+  o script **cria a linha sozinho** (Nome completo, CPF ou CNPJ, Tipo
+  inferido pelo formato do documento — 11 dígitos = CLT, 14 = PJ — e Status
+  atual = "Documento em elaboração", a primeira coluna do Kanban).
+- **Nome corrigido**: já existe uma linha com esse CPF/CNPJ, mas o nome
+  completo da pasta está diferente do padrão (erro de digitação, abreviação
+  etc.) — o script **renomeia a pasta automaticamente** para o padrão certo.
+  Seguro fazer isso porque o CPF/CNPJ já identificou com certeza a quem a
+  pasta pertence; só o texto do nome estava errado.
+- **Pasta não reconhecida**: o nome da pasta não tem 11 nem 14 dígitos onde
+  deveria ter o CPF/CNPJ — o script **não cria nada**, só reporta. Confiar
+  num formato errado poderia cadastrar um colaborador com dado inventado.
+- **Colaborador sem pasta**: já existe uma linha na planilha, mas nenhuma
+  pasta correspondente foi encontrada (raro nesse fluxo — só acontece se
+  alguém apagar a pasta depois de criada).
 
-Depois de conferir/corrigir o nome, o script lê os documentos de dentro e
+Depois de resolver o nome, o script lê os documentos de dentro da pasta e
 marca "Recebido" na planilha para cada um que reconhecer pelo TIPODOC.
 
 ## Como rodar
@@ -77,8 +84,10 @@ foi implementada):
    scripts/sincronizar-documentos.mjs"** para ver o log
 
 O log mostra, por colaborador com pasta encontrada, os arquivos e o TIPODOC
-detectado de cada um, e termina com um resumo:
-`X pasta(s) conferindo, Y com nome diferente, Z sem pasta, W atualizado(s)`.
+detectado de cada um, e termina com um resumo: quantos colaboradores novos
+foram cadastrados, quantas pastas já conferiam, quantos nomes foram
+corrigidos, quantas pastas não foram reconhecidas, quantos colaboradores
+ficaram sem pasta, e quantos foram atualizados na planilha.
 
 ## Não precisa de senha nenhuma
 
