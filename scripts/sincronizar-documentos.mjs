@@ -8,21 +8,24 @@
  *   arquivo: {mesma coisa}_{TIPODOC}.ext   (TIPODOC = ultimo trecho do nome,
  *            antes da extensao - ex.: "111.222.333-44_Ana_Paula_ASO.pdf")
  *
- * As PASTAS SAO CRIADAS PELAS PESSOAS, nao pelo script (mudanca de 12/08/2026 -
- * antes o script criava automaticamente). O script so' confere:
+ * As PASTAS SAO CRIADAS PELAS PESSOAS (profissionais da ADM), nao pelo
+ * script (mudanca de 12/08/2026 - antes o script criava automaticamente).
+ * O script:
  *
  *   1. Para cada colaborador da planilha, procura uma pasta cujo CPF/CNPJ
  *      (so' os digitos, ignorando pontuacao) bata com o dele.
  *      - Nao achou nenhuma -> reporta "faltando" (a pessoa ainda nao criou).
  *      - Achou, mas o nome completo da pasta nao e' exatamente o esperado
- *        -> reporta "nome diferente" (possivel erro de digitacao), mas
- *        continua conferindo os documentos dentro mesmo assim.
- *   2. Le os arquivos dentro da pasta encontrada. Para cada um cujo TIPODOC
- *      bate com CAMPOS_POR_ABREV (schema.js), marca o campo correspondente
- *      como "Recebido" e grava de volta na planilha.
+ *        -> RENOMEIA a pasta para o padrao certo (13/08/2026). Seguro fazer
+ *        isso porque o CPF/CNPJ ja' identificou com certeza de quem e' a
+ *        pasta - so' o nome escrito pela pessoa estava errado/incompleto.
+ *   2. Le os arquivos dentro da pasta (ja' com o nome corrigido, se foi o
+ *      caso). Para cada um cujo TIPODOC bate com CAMPOS_POR_ABREV
+ *      (schema.js), marca o campo correspondente como "Recebido" e grava de
+ *      volta na planilha.
  *   3. Reporta tambem pastas que existem mas nao correspondem a nenhum
  *      colaborador da planilha (podem ser erro de CPF/CNPJ, ou pessoa que
- *      ainda nao foi cadastrada).
+ *      ainda nao foi cadastrada) - essas NAO sao tocadas, so' reportadas.
  *
  * So' ADICIONA confirmacoes - nunca apaga ou rebaixa um status que ja' estava
  * marcado (ex.: nao troca "Nao se aplica" de volta para vazio so' porque o
@@ -161,6 +164,21 @@ async function listarArquivos(token, nomeDaPasta) {
   return (dados.value || []).map((item) => item.name);
 }
 
+/**
+ * Renomeia a pasta do colaborador para o nome no padrao esperado. So' chamada
+ * quando o CPF/CNPJ ja bateu com um colaborador - renomear pelo nome sozinho
+ * seria arriscado (nome poderia ser de outra pessoa por coincidencia).
+ */
+async function renomearPasta(token, nomeAtual, nomeNovo) {
+  const { siteId, pastaBase } = CONFIG.pastasColaboradores;
+  const caminho = `${pastaBase}/${nomeAtual}`;
+  const url = `${GRAPH}/sites/${siteId}/drive/root:/${codificarCaminho(caminho)}`;
+  await chamar(token, url, {
+    method: 'PATCH',
+    body: JSON.stringify({ name: nomeNovo }),
+  });
+}
+
 /** Aplica os arquivos encontrados ao registro. Devolve true se algo mudou. */
 function aplicarDeteccao(registro, nomesDeArquivo) {
   const tiposEncontrados = new Set(nomesDeArquivo.map(tipoDoArquivo));
@@ -243,30 +261,44 @@ async function main() {
 
   const usadas = new Set();
   let conferem = 0;
-  let comNomeDiferente = 0;
+  let nomesCorrigidos = 0;
+  let falhasAoCorrigir = 0;
   let faltando = 0;
   let colaboradoresAtualizados = 0;
 
   for (const registro of registros) {
     const esperado = nomePasta(registro);
     const digitos = apenasDigitos(registro['CPF'] || registro['CNPJ (se PJ)']);
-    const real = pastaPorDigitos.get(digitos);
+    const encontrada = pastaPorDigitos.get(digitos);
 
-    if (!real) {
+    if (!encontrada) {
       faltando++;
       console.log(`FALTANDO: ${registro['Nome completo']} - nenhuma pasta com o CPF/CNPJ ${digitos} foi encontrada (esperada: "${esperado}").`);
       continue;
     }
-    usadas.add(real);
+    usadas.add(encontrada);
 
-    if (real === esperado) {
+    // pastaAtual segue o nome que existe de fato no SharePoint - so' muda
+    // para "esperado" se a correcao abaixo der certo.
+    let pastaAtual = encontrada;
+
+    if (encontrada === esperado) {
       conferem++;
     } else {
-      comNomeDiferente++;
-      console.log(`NOME DIFERENTE: ${registro['Nome completo']} - pasta encontrada "${real}", esperada "${esperado}".`);
+      // O CPF/CNPJ ja bateu com este colaborador, entao renomear e' seguro -
+      // nao ha risco de "roubar" a pasta de outra pessoa por coincidencia de nome.
+      try {
+        await renomearPasta(token, encontrada, esperado);
+        pastaAtual = esperado;
+        nomesCorrigidos++;
+        console.log(`NOME CORRIGIDO: ${registro['Nome completo']} - pasta renomeada de "${encontrada}" para "${esperado}".`);
+      } catch (err) {
+        falhasAoCorrigir++;
+        console.log(`NAO FOI POSSIVEL CORRIGIR O NOME: ${registro['Nome completo']} - pasta "${encontrada}" deveria ser "${esperado}": ${err.message}`);
+      }
     }
 
-    const arquivos = await listarArquivos(token, real);
+    const arquivos = await listarArquivos(token, pastaAtual);
     if (arquivos.length) {
       const tipos = arquivos.map((a) => `${a} -> ${tipoDoArquivo(a) || '(sem TIPODOC)'}`);
       console.log(`  ${registro['Nome completo']}: ${tipos.join(' | ')}`);
@@ -286,8 +318,9 @@ async function main() {
   }
 
   console.log(
-    `\nResumo: ${conferem} pasta(s) conferindo, ${comNomeDiferente} com nome diferente do esperado, ` +
-    `${faltando} colaborador(es) sem pasta, ${colaboradoresAtualizados} atualizado(s) na planilha.`
+    `\nResumo: ${conferem} pasta(s) já conferindo, ${nomesCorrigidos} nome(s) corrigido(s), ` +
+    `${falhasAoCorrigir} falha(s) ao corrigir, ${faltando} colaborador(es) sem pasta, ` +
+    `${colaboradoresAtualizados} atualizado(s) na planilha.`
   );
 }
 

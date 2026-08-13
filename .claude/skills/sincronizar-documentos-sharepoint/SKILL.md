@@ -40,22 +40,28 @@ arquivo: {CPF ou CNPJ}_{Nome completo}_{TIPODOC}.ext
 Exemplo real (dados de teste, Trivia): `111.222.333-44_Ana_Paula_Ribeiro_ASO.pdf`
 dentro da pasta `111.222.333-44_Ana_Paula_Ribeiro`.
 
-## As pastas são criadas pelas pessoas, não pelo script
+## As pastas são criadas pelas profissionais da ADM, não pelo script
 
 Mudança de design em 12/08/2026: o script **não cria mais pastas
-automaticamente**. Cada pessoa cria a própria pasta e sobe os documentos; o
-script só audita. Isso existe de propósito — criar a pasta automaticamente
-esconderia um erro de digitação no CPF/CNPJ (a pasta "erraria" de nome sem
-ninguém notar). Ao invés disso, o script reporta:
+automaticamente**. A profissional da ADM cria a pasta do colaborador e sobe
+os documentos; o script confere e corrige o nome se precisar:
 
-- **Faltando**: nenhuma pasta com aquele CPF/CNPJ foi encontrada.
-- **Nome diferente**: achou uma pasta com o CPF/CNPJ certo, mas o nome
-  completo não bate exatamente com o esperado (provável erro de digitação no
-  nome — ele ainda confere os documentos normalmente, usando o CPF/CNPJ como
-  identificador, não o nome).
+- **Faltando**: nenhuma pasta com aquele CPF/CNPJ foi encontrada — a pessoa
+  ainda não criou.
+- **Nome corrigido** (13/08/2026): achou uma pasta cujo CPF/CNPJ bate com um
+  colaborador da planilha, mas o nome completo estava diferente do padrão
+  (erro de digitação, abreviação, etc.) — o script **renomeia a pasta
+  automaticamente** para o padrão certo. É seguro fazer isso porque o
+  CPF/CNPJ já identificou com certeza a quem a pasta pertence; só o texto do
+  nome estava errado.
 - **Pasta sem colaborador correspondente**: existe uma pasta cujo CPF/CNPJ
   não bate com nenhuma linha da planilha (pessoa não cadastrada, ou erro no
-  CPF/CNPJ digitado na pasta).
+  CPF/CNPJ digitado na pasta). Essa **não é tocada automaticamente** — só
+  reportada, porque sem CPF/CNPJ batendo não há como saber com segurança de
+  quem é.
+
+Depois de conferir/corrigir o nome, o script lê os documentos de dentro e
+marca "Recebido" na planilha para cada um que reconhecer pelo TIPODOC.
 
 ## Como rodar
 
