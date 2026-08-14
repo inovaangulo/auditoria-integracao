@@ -151,13 +151,10 @@ js/
     kanban.js  detalhe.js  dashboard.js  lista.js
 exemplo/
   dados-exemplo.json    Dados fictícios para demonstração
-scripts/
-  sincronizar-documentos.mjs   Audita as pastas de documentos no SharePoint (ver abaixo)
-.github/workflows/
-  sincronizar-documentos.yml   Dispara o script acima (hoje só manual)
-.claude/skills/
-  sincronizar-documentos-sharepoint/SKILL.md   Documentação completa da sincronização
 ```
+
+A rotina de sincronização automática (script, workflow e skill) mora num
+repositório separado e privado — ver a seção abaixo.
 
 **Mudou uma coluna na planilha?** Atualize `js/schema.js` na mesma posição — a
 ordem de `COLUNAS` precisa espelhar a planilha de A até AT, porque é por posição
@@ -171,27 +168,24 @@ que a linha vira registro e volta.
 
 A pasta de documentos no SharePoint (site "admin", biblioteca TESTES_IA_ADM)
 é o ponto de entrada de um colaborador novo: quando a profissional da ADM
-cria a pasta no padrão `CPF/CNPJ_Nome completo`, o script cadastra a linha
-correspondente na planilha sozinho — **a planilha não precisa ter ninguém
+cria a pasta no padrão `CPF/CNPJ_Nome completo`, uma rotina cadastra a linha
+correspondente na planilha sozinha — **a planilha não precisa ter ninguém
 cadastrado antes**. Os documentos entram no padrão
 `CPF/CNPJ_Nome completo_TIPODOC.ext` (ex.:
 `111.222.333-44_Ana_Paula_Ribeiro_ASO.pdf`).
 
-Um script (`scripts/sincronizar-documentos.mjs`) cuida disso: cadastra
-colaborador novo a partir da pasta, corrige o nome da pasta se o CPF/CNPJ já
-identificar quem é, e marca como "Recebido" cada documento cujo arquivo for
-encontrado. Autentica sem senha nenhuma, via credencial federada com o
-GitHub Actions.
+**Essa rotina mora num repositório separado e privado:**
+[`inovaangulo/auditoria-integracao-automacao`](https://github.com/inovaangulo/auditoria-integracao-automacao).
+Ela precisa ler nomes de arquivo que podem ter dado pessoal embutido, e o log
+de execução do GitHub Actions é sempre público num repositório público — por
+isso ficou separada deste (que continua público, sem nenhum dado pessoal,
+só para o GitHub Pages funcionar de graça). `js/schema.js`, `js/regras.js` e
+`js/dados/planilha.js` continuam aqui, porque não têm segredo e o app web
+também precisa deles — a rotina só importa esses arquivos por cima.
 
-Roda sozinho de 3 em 3 horas em horário comercial (8h, 11h, 14h, 17h,
-horário de Brasília), de segunda a sexta — sem precisar clicar em nada. Também
-dá para disparar manualmente quando quiser, na aba
-[Actions](https://github.com/inovaangulo/auditoria-integracao/actions) do
-repositório, botão "Run workflow".
-
-Guia completo (convenção de nomes, como interpretar o relatório, como
-adicionar um novo tipo de documento, como diagnosticar problemas):
-[`.claude/skills/sincronizar-documentos-sharepoint/SKILL.md`](.claude/skills/sincronizar-documentos-sharepoint/SKILL.md).
+Guia completo (convenção de nomes, como rodar, como interpretar o relatório,
+como adicionar um novo tipo de documento) está no outro repositório, em
+`.claude/skills/sincronizar-documentos-sharepoint/SKILL.md`.
 
 ---
 
