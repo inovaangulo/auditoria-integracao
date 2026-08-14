@@ -57,11 +57,14 @@ tenta extrair o CPF/CNPJ e o nome direto do nome da pasta, e decide:
   o script **cria a linha sozinho** (Nome completo, CPF ou CNPJ, Tipo
   inferido pelo formato do documento — 11 dígitos = CLT, 14 = PJ — e Status
   atual = "Documento em elaboração", a primeira coluna do Kanban).
-- **Nome corrigido**: já existe uma linha com esse CPF/CNPJ, mas o nome
-  completo da pasta está diferente do padrão (erro de digitação, abreviação
-  etc.) — o script **renomeia a pasta automaticamente** para o padrão certo.
-  Seguro fazer isso porque o CPF/CNPJ já identificou com certeza a quem a
-  pasta pertence; só o texto do nome estava errado.
+- **Planilha atualizada pela pasta**: já existe uma linha com esse CPF/CNPJ,
+  mas o nome completo (ou a pontuação do CPF/CNPJ) na pasta é diferente do
+  que está na planilha — o script **atualiza a planilha** para acompanhar a
+  pasta. **A pasta nunca é renomeada** (mudança de 13/08/2026): se a
+  profissional da ADM corrigir a pasta depois — ex.: adicionar um sobrenome
+  que faltava — a planilha segue essa correção, nunca o contrário. Antes
+  disso o script fazia o inverso (renomeava a pasta para bater com a
+  planilha), o que desfazia qualquer correção feita depois da criação.
 - **Pasta não reconhecida**: o nome da pasta não tem 11 nem 14 dígitos onde
   deveria ter o CPF/CNPJ — o script **não cria nada**, só reporta. Confiar
   num formato errado poderia cadastrar um colaborador com dado inventado.
@@ -70,7 +73,26 @@ tenta extrair o CPF/CNPJ e o nome direto do nome da pasta, e decide:
   alguém apagar a pasta depois de criada).
 
 Depois de resolver o nome, o script lê os documentos de dentro da pasta e
-marca "Recebido" na planilha para cada um que reconhecer pelo TIPODOC.
+marca "Recebido" na planilha para cada um que reconhecer pelo TIPODOC. O log
+não mostra o nome exato de cada arquivo (só a contagem e os TIPODOC
+reconhecidos) — ver seção de privacidade abaixo.
+
+## ⚠️ Cuidado com dado real enquanto o repositório for público
+
+O log de cada execução do GitHub Actions é **público**, porque o
+repositório é público (exigência do GitHub Pages gratuito). Isso já causou
+uma exposição real em 13/08/2026: uma pasta de uma colaboradora de verdade
+foi processada em TESTES_IA_ADM, e o nome completo dela apareceu no log
+antes desta skill reduzir o que é impresso.
+
+**Enquanto isso não for resolvido definitivamente** (mover este script para
+um repositório privado — ver Pendências), trate TESTES_IA_ADM como uma área
+só de teste com dados fictícios. Se uma pasta real acabar entrando ali por
+engano:
+1. Mova a pasta para fora de TESTES_IA_ADM imediatamente (antes da próxima
+   execução agendada).
+2. Apague a execução do GitHub Actions que a processou: Actions → a
+   execução → "..." → **Delete workflow run**.
 
 ## Como rodar
 
@@ -154,6 +176,12 @@ Causas mais comuns, na ordem em que vale checar:
 
 ## Pendências
 
+- **Mover o script para um repositório privado.** É a correção definitiva
+  para o log público — enquanto isso não acontece, o paliativo (log sem
+  nome de arquivo) reduz mas não elimina o risco. Precisa: criar o
+  repositório privado, mover `scripts/`, `.github/workflows/` e este
+  `.claude/skills/` para lá, e reconfigurar a credencial federada no Entra
+  ID para confiar no novo repositório (branch, org/repo diferentes).
 - Histórico de auditoria (quem rodou quando, o que mudou) não é gravado em
   lugar nenhum além do log do próprio GitHub Actions — se precisar de
   retenção mais longa, seria um próximo passo.
