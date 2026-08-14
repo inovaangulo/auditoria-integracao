@@ -183,9 +183,11 @@ identificar quem é, e marca como "Recebido" cada documento cujo arquivo for
 encontrado. Autentica sem senha nenhuma, via credencial federada com o
 GitHub Actions.
 
-Por enquanto só roda quando alguém clica em **"Run workflow"** na aba
+Roda sozinho de 3 em 3 horas em horário comercial (8h, 11h, 14h, 17h,
+horário de Brasília), de segunda a sexta — sem precisar clicar em nada. Também
+dá para disparar manualmente quando quiser, na aba
 [Actions](https://github.com/inovaangulo/auditoria-integracao/actions) do
-repositório — agendar para rodar sozinho é o próximo passo.
+repositório, botão "Run workflow".
 
 Guia completo (convenção de nomes, como interpretar o relatório, como
 adicionar um novo tipo de documento, como diagnosticar problemas):

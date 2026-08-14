@@ -74,8 +74,23 @@ marca "Recebido" na planilha para cada um que reconhecer pelo TIPODOC.
 
 ## Como rodar
 
-Por enquanto só manualmente (Parte C — agendamento automático — ainda não
-foi implementada):
+**Roda sozinho** de 3 em 3 horas, em horário comercial (8h, 11h, 14h e 17h,
+horário de Brasília), de segunda a sexta — não precisa clicar em nada no dia
+a dia. O gatilho é o `schedule:` em
+[`.github/workflows/sincronizar-documentos.yml`](../../.github/workflows/sincronizar-documentos.yml)
+(cron do GitHub Actions é sempre em UTC, por isso o arquivo tem `11,14,17,20`).
+
+Para mudar o horário ou a frequência, edite essa linha de cron e publique —
+não precisa de nada além disso. Duas particularidades do agendamento do
+GitHub Actions vale saber:
+- O horário não é exato ao minuto — pode atrasar alguns minutos em períodos
+  de pico do GitHub.
+- Se o repositório ficar **60 dias sem nenhum commit**, o GitHub desativa o
+  agendamento automaticamente (some tipo de proteção contra repositório
+  abandonado). Qualquer commit novo reativa.
+
+Também dá para rodar manualmente quando quiser (útil para testar uma mudança
+sem esperar o próximo horário):
 
 1. `https://github.com/inovaangulo/auditoria-integracao/actions`
 2. Clique em **"Sincronizar documentos dos colaboradores"** no menu à esquerda
@@ -139,9 +154,6 @@ Causas mais comuns, na ordem em que vale checar:
 
 ## Pendências
 
-- **Parte C (agendamento automático)**: por enquanto só roda quando alguém
-  clica em "Run workflow". Adicionar um gatilho `schedule:` (cron) ao
-  workflow quando o teste manual estiver validado.
 - Histórico de auditoria (quem rodou quando, o que mudou) não é gravado em
   lugar nenhum além do log do próprio GitHub Actions — se precisar de
   retenção mais longa, seria um próximo passo.

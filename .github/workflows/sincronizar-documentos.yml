@@ -1,10 +1,13 @@
 name: Sincronizar documentos dos colaboradores
 
-# Por enquanto so' com gatilho manual (workflow_dispatch), para testar antes
-# de agendar de verdade. A Parte C (rotina automatica) adiciona um `schedule:`
-# aqui quando o teste manual estiver validado.
+# Roda sozinho de 3 em 3 horas em horario comercial (8h, 11h, 14h, 17h,
+# horario de Brasilia = UTC-3, sem horario de verao), de segunda a sexta.
+# Cron do GitHub Actions e' sempre em UTC, por isso 11,14,17,20.
+# "workflow_dispatch" continua disponivel para rodar manualmente quando quiser.
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 11,14,17,20 * * 1-5'
 
 # id-token: write e' o que permite trocar a identidade deste job por um token
 # do Microsoft Graph, sem nenhum segredo guardado no GitHub.
