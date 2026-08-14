@@ -22,17 +22,25 @@
  *        CPF ou CNPJ, Tipo inferido pelo formato do documento - CPF de 11
  *        digitos = CLT, CNPJ de 14 = PJ - e Status atual = "Documento em
  *        elaboracao", a primeira coluna do Kanban).
- *      - Achou, mas o nome completo da pasta nao e' exatamente o esperado
- *        -> RENOMEIA a pasta para o padrao certo. Seguro fazer isso porque
- *        o CPF/CNPJ ja' identificou com certeza de quem e' a pasta - so' o
- *        nome escrito pela pessoa estava errado/incompleto.
- *   3. Le os arquivos dentro da pasta (ja' com o nome corrigido, se foi o
- *      caso). Para cada um cujo TIPODOC bate com CAMPOS_POR_ABREV
- *      (schema.js), marca o campo correspondente como "Recebido" e grava de
- *      volta na planilha.
+ *      - Achou, mas o nome completo (ou CPF/CNPJ) extraido da pasta e'
+ *        diferente do que ja esta' na planilha -> ATUALIZA A PLANILHA para
+ *        acompanhar a pasta (mudanca de 13/08/2026 - antes era o contrario,
+ *        o script renomeava a pasta para bater com a planilha; isso estava
+ *        errado porque a PASTA e' quem manda: se uma profissional da ADM
+ *        corrigir a pasta depois - ex.: adicionar um sobrenome que faltava -
+ *        a planilha precisa acompanhar essa correcao, nao desfaze-la).
+ *   3. Le os arquivos dentro da pasta. Para cada um cujo TIPODOC bate com
+ *      CAMPOS_POR_ABREV (schema.js), marca o campo correspondente como
+ *      "Recebido" e grava de volta na planilha.
  *   4. Reporta tambem colaboradores que ja estao na planilha mas nao tem
  *      pasta correspondente (raro nesse fluxo, mas pode acontecer se a
  *      pasta for apagada depois).
+ *
+ * O log NAO imprime o nome exato dos arquivos (so' quantos e quais TIPODOC
+ * foram reconhecidos) - o nome de um arquivo pode ter CNPJ, dado financeiro
+ * etc. embutido, e o log deste workflow e' publico enquanto o repositorio
+ * for publico. Isso e' um paliativo; o certo e' mover este script para um
+ * repositorio PRIVADO (ver ## Pendencias na skill sincronizar-documentos-sharepoint).
  *
  * So' ADICIONA confirmacoes - nunca apaga ou rebaixa um status que ja' estava
  * marcado (ex.: nao troca "Nao se aplica" de volta para vazio so' porque o
@@ -213,21 +221,6 @@ async function listarArquivos(token, nomeDaPasta) {
   return (dados.value || []).map((item) => item.name);
 }
 
-/**
- * Renomeia a pasta do colaborador para o nome no padrao esperado. So' chamada
- * quando o CPF/CNPJ ja bateu com um colaborador - renomear pelo nome sozinho
- * seria arriscado (nome poderia ser de outra pessoa por coincidencia).
- */
-async function renomearPasta(token, nomeAtual, nomeNovo) {
-  const { siteId, pastaBase } = CONFIG.pastasColaboradores;
-  const caminho = `${pastaBase}/${nomeAtual}`;
-  const url = `${GRAPH}/sites/${siteId}/drive/root:/${codificarCaminho(caminho)}`;
-  await chamar(token, url, {
-    method: 'PATCH',
-    body: JSON.stringify({ name: nomeNovo }),
-  });
-}
-
 /** Aplica os arquivos encontrados ao registro. Devolve true se algo mudou. */
 function aplicarDeteccao(registro, nomesDeArquivo) {
   const tiposEncontrados = new Set(nomesDeArquivo.map(tipoDoArquivo));
@@ -313,78 +306,75 @@ async function main() {
   const usadas = new Set();
   let novosColaboradores = 0;
   let conferem = 0;
-  let nomesCorrigidos = 0;
-  let falhasAoCorrigir = 0;
+  let atualizadosPelaPasta = 0;
   let naoReconhecidas = 0;
   let colaboradoresAtualizados = 0;
   let proximaLinha = registros.length + 2; // 1 = cabecalho
 
   for (const pasta of pastasExistentes) {
-    const digitos = apenasDigitos(pasta);
-    let registro = digitos ? registroPorDigitos.get(digitos) : null;
-    let pastaAtual = pasta;
+    // A pasta e' sempre a fonte da verdade para nome e CPF/CNPJ - o script
+    // nunca renomeia a pasta, so' ajusta a planilha para acompanha-la.
+    const dados = novoRegistroDaPasta(pasta);
+    if (!dados) {
+      naoReconhecidas++;
+      console.log(`NAO RECONHECIDA: pasta com nome fora do padrao - ignorada (nao tem CPF/CNPJ valido de 11 ou 14 digitos).`);
+      continue;
+    }
+
+    const digitos = apenasDigitos(dados['CPF'] || dados['CNPJ (se PJ)']);
+    let registro = registroPorDigitos.get(digitos);
 
     if (!registro) {
-      // Sem colaborador correspondente na planilha - a pasta em si e' o
-      // sinal de que alguem novo esta entrando. So' cria se o nome da pasta
-      // realmente tiver um CPF/CNPJ valido (11 ou 14 digitos); senao, ignora.
-      const novo = novoRegistroDaPasta(pasta);
-      if (!novo) {
-        naoReconhecidas++;
-        console.log(`NAO RECONHECIDA: pasta "${pasta}" não tem um CPF/CNPJ válido no nome - ignorada.`);
-        continue;
-      }
-      novo.__linha = proximaLinha++;
-      registro = recalcular(novo);
+      // Colaborador novo - a pasta e' o cadastro inicial.
+      dados.__linha = proximaLinha++;
+      registro = recalcular(dados);
       await escreverLinha(token, registro);
       novosColaboradores++;
       registroPorDigitos.set(digitos, registro);
-      console.log(`NOVO COLABORADOR: ${registro['Nome completo']} (${registro['Tipo']}) cadastrado a partir da pasta "${pasta}".`);
+      console.log(`NOVO COLABORADOR cadastrado a partir da pasta (${registro['Tipo']}).`);
+    } else if (nomePasta(registro) !== nomePasta(dados)) {
+      // A pasta mudou desde o ultimo cadastro (ex.: sobrenome adicionado
+      // depois) - a planilha acompanha, nunca o contrario.
+      registro['Nome completo'] = dados['Nome completo'];
+      if (dados['CPF']) registro['CPF'] = dados['CPF'];
+      if (dados['CNPJ (se PJ)']) registro['CNPJ (se PJ)'] = dados['CNPJ (se PJ)'];
+      registro = recalcular(registro);
+      await escreverLinha(token, registro);
+      atualizadosPelaPasta++;
+      console.log(`PLANILHA ATUALIZADA a partir da pasta corrigida.`);
     } else {
-      const esperado = nomePasta(registro);
-      if (pasta === esperado) {
-        conferem++;
-      } else {
-        // O CPF/CNPJ ja bateu com este colaborador, entao renomear e' seguro -
-        // nao ha risco de "roubar" a pasta de outra pessoa por coincidencia de nome.
-        try {
-          await renomearPasta(token, pasta, esperado);
-          pastaAtual = esperado;
-          nomesCorrigidos++;
-          console.log(`NOME CORRIGIDO: ${registro['Nome completo']} - pasta renomeada de "${pasta}" para "${esperado}".`);
-        } catch (err) {
-          falhasAoCorrigir++;
-          console.log(`NAO FOI POSSIVEL CORRIGIR O NOME: ${registro['Nome completo']} - pasta "${pasta}" deveria ser "${esperado}": ${err.message}`);
-        }
-      }
+      conferem++;
     }
     usadas.add(digitos);
 
-    const arquivos = await listarArquivos(token, pastaAtual);
+    // So' a contagem e os TIPODOC reconhecidos vao pro log - nao o nome exato
+    // dos arquivos (pode ter CNPJ, dado financeiro etc. embutido, e o log
+    // deste workflow e' publico enquanto o repositorio for publico).
+    const arquivos = await listarArquivos(token, pasta);
     if (arquivos.length) {
-      const tipos = arquivos.map((a) => `${a} -> ${tipoDoArquivo(a) || '(sem TIPODOC)'}`);
-      console.log(`  ${registro['Nome completo']}: ${tipos.join(' | ')}`);
+      const tipos = arquivos.map(tipoDoArquivo);
+      const reconhecidos = tipos.filter((t) => CAMPOS_POR_ABREV[t]);
+      console.log(`  ${arquivos.length} arquivo(s) na pasta, ${reconhecidos.length} reconhecido(s): ${reconhecidos.join(', ') || '-'}`);
     }
     const mudou = aplicarDeteccao(registro, arquivos);
     if (mudou) {
       const atualizado = recalcular(registro);
       await escreverLinha(token, atualizado);
       colaboradoresAtualizados++;
-      console.log(`  Atualizado na planilha: ${registro['Nome completo']}`);
+      console.log(`  Documentos atualizados na planilha.`);
     }
   }
 
   const semPasta = [...digitosIniciais].filter((d) => !usadas.has(d));
-  for (const d of semPasta) {
-    const r = registroPorDigitos.get(d);
-    console.log(`SEM PASTA: ${r['Nome completo']} - já está na planilha, mas nenhuma pasta correspondente foi encontrada.`);
+  if (semPasta.length) {
+    console.log(`\n${semPasta.length} colaborador(es) já na planilha sem pasta correspondente encontrada.`);
   }
 
   console.log(
     `\nResumo: ${novosColaboradores} colaborador(es) novo(s) cadastrado(s), ` +
-    `${conferem} pasta(s) já conferindo, ${nomesCorrigidos} nome(s) corrigido(s), ` +
-    `${falhasAoCorrigir} falha(s) ao corrigir, ${naoReconhecidas} pasta(s) não reconhecida(s), ` +
-    `${semPasta.length} colaborador(es) sem pasta, ${colaboradoresAtualizados} atualizado(s) na planilha.`
+    `${conferem} pasta(s) já conferindo, ${atualizadosPelaPasta} planilha(s) atualizada(s) pela pasta, ` +
+    `${naoReconhecidas} pasta(s) não reconhecida(s), ${semPasta.length} colaborador(es) sem pasta, ` +
+    `${colaboradoresAtualizados} atualizado(s) por documentos.`
   );
 }
 
