@@ -216,8 +216,8 @@ function desenhar() {
       el('h3', { texto: 'Situação e prazos' }),
       el('div', { class: 'grade' }, [
         campoSelect('Status atual', 'Status atual', ['', ...STATUS_VALIDOS], { largo: true }),
-        campoTexto('Data envio p/ assinatura', 'Data envio p/ assinatura', { tipo: 'date' }),
-        campoTexto('Data envio p/ análise Wehandle', 'Data envio p/ análise Wehandle', { tipo: 'date' }),
+        campoTexto('Data envio para assinatura', 'Data envio p/ assinatura', { tipo: 'date' }),
+        campoTexto('Data envio para análise Wehandle', 'Data envio p/ análise Wehandle', { tipo: 'date' }),
         campoTexto('Data cadastro empresa Wehandle (PJ)', 'Data cadastro empresa Wehandle (PJ)', { tipo: 'date' }),
         campoTexto('Data aprovação', 'Data aprovação', { tipo: 'date' }),
         campoTexto('Data integração agendada', 'Data integração agendada', { tipo: 'date' }),
