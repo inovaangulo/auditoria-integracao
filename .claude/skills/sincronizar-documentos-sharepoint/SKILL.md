@@ -5,6 +5,8 @@ description: Audita as pastas de documentos de colaboradores no SharePoint (site
 
 # Sincronizar documentos com o SharePoint — Auditoria de Integração
 
+*Criado por Sara Cantão — Ângulo Social.*
+
 Audita as pastas de colaboradores no SharePoint contra a planilha
 `Painel_Controle_Integracao_Trivia_Tabela.xlsx` (a mesma que [o app
 web](../../) usa). **A pasta é o gatilho**: quando uma profissional da ADM

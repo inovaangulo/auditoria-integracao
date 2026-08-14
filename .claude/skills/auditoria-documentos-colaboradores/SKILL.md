@@ -5,6 +5,8 @@ description: Audita pastas de documentos de integração de colaboradores (CLT e
 
 # Auditoria de Documentos de Integração de Colaboradores
 
+*Criado por Sara Cantão — Ângulo Social.*
+
 Audita pastas de documentos de integração de colaboradores (CLT e PJ), compara com o checklist padrão de integração, verifica vencimentos, confere se o conteúdo dos documentos realmente pertence ao colaborador daquela pasta, e sinaliza os documentos que só são exigidos por contratos específicos. Produz uma planilha Excel e um quadro Kanban em HTML (com badges clicáveis e checklist dos faltantes).
 
 **Nota (13/08/2026):** esta skill audita pastas **locais** (uma pasta base com uma subpasta por colaborador, no computador de quem roda). É diferente da
