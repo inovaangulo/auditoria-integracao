@@ -15,7 +15,7 @@ let abaAtiva = 'Kanban';
 function pegarNos() {
   const ids = [
     'rotuloFonte', 'btnConectar', 'btnImportar', 'btnExportar', 'btnAtualizar',
-    'faixaAviso', 'filtroBusca', 'filtroCliente', 'filtroTipo', 'filtroAlerta',
+    'faixaAviso', 'filtroBusca', 'filtroCliente', 'filtroResponsavel', 'filtroTipo', 'filtroAlerta',
     'contadorGeral', 'carregando', 'kanban', 'painelKanban', 'painelDashboard',
     'painelLista', 'abaKanban', 'abaDashboard', 'abaLista', 'inputArquivo',
     'btnGeradorPasta',
@@ -90,6 +90,7 @@ function renderizar() {
     : '';
 
   atualizarFiltroCliente();
+  atualizarFiltroResponsavel();
 
   if (!total) {
     nos.kanban.hidden = true;
@@ -117,6 +118,18 @@ function atualizarFiltroCliente() {
   nos.filtroCliente.append(el('option', { value: '', texto: 'Todos' }));
   for (const c of opcoes) nos.filtroCliente.append(el('option', { value: c, texto: c }));
   nos.filtroCliente.value = opcoes.includes(atual) ? atual : '';
+}
+
+function atualizarFiltroResponsavel() {
+  const opcoes = dados.responsaveis();
+  const atual = nos.filtroResponsavel.value;
+  const jaTem = [...nos.filtroResponsavel.options].slice(1).map((o) => o.value);
+  if (jaTem.join('|') === opcoes.join('|')) return;
+
+  limpar(nos.filtroResponsavel);
+  nos.filtroResponsavel.append(el('option', { value: '', texto: 'Todos' }));
+  for (const r of opcoes) nos.filtroResponsavel.append(el('option', { value: r, texto: r }));
+  nos.filtroResponsavel.value = opcoes.includes(atual) ? atual : '';
 }
 
 function atualizarCabecalho() {
@@ -188,6 +201,7 @@ function ligarEventos() {
     temporizador = setTimeout(() => dados.definirFiltro('busca', nos.filtroBusca.value), 180);
   });
   nos.filtroCliente.addEventListener('change', () => dados.definirFiltro('cliente', nos.filtroCliente.value));
+  nos.filtroResponsavel.addEventListener('change', () => dados.definirFiltro('responsavel', nos.filtroResponsavel.value));
   nos.filtroTipo.addEventListener('change', () => dados.definirFiltro('tipo', nos.filtroTipo.value));
   nos.filtroAlerta.addEventListener('change', () => dados.definirFiltro('alerta', nos.filtroAlerta.value));
 

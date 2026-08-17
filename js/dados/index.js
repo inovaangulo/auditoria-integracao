@@ -19,7 +19,7 @@ export const estado = {
   usuario: null,
   conectado: false,
   registros: [],
-  filtros: { busca: '', cliente: '', tipo: '', alerta: '' },
+  filtros: { busca: '', cliente: '', responsavel: '', tipo: '', alerta: '' },
   datasEntrada: new Map(), // chave -> data de entrada (Map: le' rapido, chave ja normalizada)
 };
 
@@ -215,11 +215,12 @@ function normalizar(s) {
 }
 
 export function registrosFiltrados() {
-  const { busca, cliente, tipo, alerta } = estado.filtros;
+  const { busca, cliente, responsavel, tipo, alerta } = estado.filtros;
   const termo = normalizar(busca).trim();
 
   return estado.registros.filter((r) => {
     if (cliente && r['Cliente atual'] !== cliente) return false;
+    if (responsavel && r['Responsável ADM'] !== responsavel) return false;
     if (tipo && r['Tipo'] !== tipo) return false;
 
     if (alerta === 'alerta' && alertas(r).length === 0) return false;
@@ -247,6 +248,10 @@ export function porColuna() {
 
 export function clientes() {
   return [...new Set(estado.registros.map((r) => r['Cliente atual']).filter(Boolean))].sort();
+}
+
+export function responsaveis() {
+  return [...new Set(estado.registros.map((r) => r['Responsável ADM']).filter(Boolean))].sort();
 }
 
 export { alertas, documentosFaltantes };
