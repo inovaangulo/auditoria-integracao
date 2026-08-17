@@ -256,8 +256,11 @@ export function alertas(reg) {
     lista.push({ nivel: 'critico', texto: r['Consistência do status'] });
   }
   if (r['Alerta verificação de conteúdo']) {
+    // Nivel proprio ("revisar"), nao "critico"/"atencao" - e' pendencia de
+    // conferencia manual (possivel erro humano), nao urgencia de prazo, e a
+    // Sara pediu para essas cores nao se misturarem.
     lista.push({
-      nivel: 'critico',
+      nivel: 'revisar',
       texto: `Conferir documento(s) — nome não encontrado no conteúdo: ${r['Alerta verificação de conteúdo']}`,
     });
   }

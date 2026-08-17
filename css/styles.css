@@ -434,6 +434,9 @@ button { font-family: inherit; cursor: pointer; }
 .alerta.critico { background: var(--vermelho-suave); border-color: var(--vermelho); color: var(--vermelho-escuro); }
 .alerta.atencao { background: var(--ambar-suave); border-color: var(--ambar); color: #7a5a08; }
 .alerta.ok { background: var(--verde-suave); border-color: var(--verde); color: var(--verde-escuro); }
+/* "revisar": pendência de conferência manual (ex.: nome não bate no documento) -
+   cinza de propósito, para não se confundir com os alertas de prazo (vermelho/âmbar). */
+.alerta.revisar { background: var(--cinza-suave); border-color: var(--cinza); color: #33383f; }
 
 /* ----------------------------------------------------------- histórico */
 
