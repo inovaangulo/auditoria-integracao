@@ -138,7 +138,7 @@ index.html              Página única — a estrutura fixa da tela
 css/styles.css          Identidade visual Ângulo Social
 js/
   config.js             clientId do Azure e localização da planilha  ← o que você edita
-  schema.js             As 46 colunas, o checklist CLT/PJ, as etapas do Kanban
+  schema.js             As 47 colunas, o checklist CLT/PJ, as etapas do Kanban
   regras.js             Prazos, alertas e "documentos completos?"
   ui.js                 Utilitários de interface
   app.js                Liga os controles da página às telas
@@ -157,7 +157,7 @@ A rotina de sincronização automática (script, workflow e skill) mora num
 repositório separado e privado — ver a seção abaixo.
 
 **Mudou uma coluna na planilha?** Atualize `js/schema.js` na mesma posição — a
-ordem de `COLUNAS` precisa espelhar a planilha de A até AT, porque é por posição
+ordem de `COLUNAS` precisa espelhar a planilha de A até AU, porque é por posição
 que a linha vira registro e volta.
 
 **Mudou um prazo?** `PARAMETROS` em `js/schema.js`.
@@ -199,11 +199,15 @@ como adicionar um novo tipo de documento) está no outro repositório, em
   e feriados nacionais (fixos e móveis).
 - **Consistência** — aponta "aprovado com documento pendente" e "enviado para
   assinatura sem documentação completa". É aviso, não trava: quem decide é o ADM.
-- **Data de entrada** — não é uma coluna da planilha. É a entrada mais antiga do
-  histórico de cada colaborador (normalmente "Cadastro", gravada pela sincronização
-  automática ao criar a linha a partir da pasta). Usada pela coluna "Entrada" da
-  Lista e pelo rótulo de período do Dashboard. Colaborador cadastrado antes do
-  histórico existir aparece como "sem data".
+- **Data de entrada** — a coluna "Entrada" da Lista e o rótulo de período do
+  Dashboard usam a entrada mais antiga do histórico de cada colaborador
+  (normalmente "Cadastro", gravada pela sincronização automática ao criar a
+  linha a partir da pasta) — não a coluna "Data de entrada" da planilha.
+  Colaborador cadastrado antes do histórico existir aparece como "sem data".
+  A planilha também tem uma coluna própria "Data de entrada" (17/08/2026),
+  gravada uma vez pela sincronização no momento da criação — hoje serve como
+  registro bruto na própria planilha (útil pra quem abre o Excel direto),
+  ainda não é usada nesse cálculo.
 
 Os valores de prazo vêm da aba *Parâmetros* da planilha e estão em `js/schema.js`.
 
