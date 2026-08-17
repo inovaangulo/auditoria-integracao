@@ -6,7 +6,7 @@
  * parar na planilha compartilhada.
  */
 
-import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS } from '../schema.js';
+import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS, RESPONSAVEIS_ADM } from '../schema.js';
 import { recalcular, alertas, paraInputDate } from '../regras.js';
 import { salvarRegistro, excluirRegistro, historicoDe, dataEntradaDe } from '../dados/index.js';
 import { el, limpar, documentoDe } from '../ui.js';
@@ -94,12 +94,34 @@ function marcarErroNoCampo(campo) {
 }
 
 function campoSelect(rotulo, campo, opcoes, { largo = false } = {}) {
-  const select = el('select');
+  const select = el('select', { 'data-campo': campo });
   for (const o of opcoes) {
     select.append(el('option', { value: o, texto: o || '—', selected: (rascunho[campo] || '') === o }));
   }
-  select.addEventListener('change', () => definir(campo, select.value));
+  select.addEventListener('change', () => { select.classList.remove('erro'); definir(campo, select.value); });
   return el('label', { class: `campo${largo ? ' largo' : ''}` }, [el('span', { texto: rotulo }), select]);
+}
+
+/**
+ * Select do Responsável ADM: opções vêm de RESPONSAVEIS_ADM (schema.js), valor
+ * gravado é o e-mail (é pra lá que o resumo diário de alertas é enviado).
+ * Se o valor atual não bater com ninguém da lista (dado antigo, digitado à
+ * mão antes desta mudança), mostra uma opção extra pra não sumir com o dado.
+ */
+function campoResponsavelAdm() {
+  const atual = rascunho['Responsável ADM'] || '';
+  const opcoes = RESPONSAVEIS_ADM.map((p) => ({ valor: p.email, rotulo: `${p.nome} — ${p.email}` }));
+  if (atual && !opcoes.some((o) => o.valor === atual)) {
+    opcoes.push({ valor: atual, rotulo: `${atual} (fora da lista)` });
+  }
+
+  const select = el('select', { 'data-campo': 'Responsável ADM' });
+  select.append(el('option', { value: '', texto: 'Selecione…', selected: !atual }));
+  for (const o of opcoes) {
+    select.append(el('option', { value: o.valor, texto: o.rotulo, selected: atual === o.valor }));
+  }
+  select.addEventListener('change', () => { select.classList.remove('erro'); definir('Responsável ADM', select.value); });
+  return el('label', { class: 'campo' }, [el('span', { texto: 'Responsável ADM' }), select]);
 }
 
 function campoCalculado(rotulo, texto, { largo = false } = {}) {
@@ -243,7 +265,7 @@ function desenhar() {
         campoSelect('Vínculo', 'Tipo', ['', 'CLT', 'PJ']),
         campoTexto('Cliente atual', 'Cliente atual'),
         campoTexto('Cargo / Função', 'Cargo / Função'),
-        campoTexto('Responsável ADM', 'Responsável ADM'),
+        campoResponsavelAdm(),
         campoTexto('WhatsApp contato', 'WhatsApp contato'),
       ]),
     ]),
@@ -323,11 +345,7 @@ async function salvar() {
   }
   const responsavel = String(rascunho['Responsável ADM'] || '').trim();
   if (!responsavel) {
-    bloquearSalvamento('Responsável ADM', 'Informe o e-mail do Responsável ADM antes de salvar — é para lá que os avisos de alerta são enviados.');
-    return;
-  }
-  if (!responsavel.includes('@')) {
-    bloquearSalvamento('Responsável ADM', 'O campo Responsável ADM precisa ser um e-mail (ex.: nome@angulosocial.com) — é para lá que os avisos de alerta são enviados.');
+    bloquearSalvamento('Responsável ADM', 'Selecione o Responsável ADM antes de salvar — é para lá que os avisos de alerta são enviados.');
     return;
   }
 

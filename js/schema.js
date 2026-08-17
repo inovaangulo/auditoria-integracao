@@ -58,6 +58,17 @@ export const COLUNAS = [
   'Alerta verificação de conteúdo',         // AV - lista dos documentos com nome não conferido; ADM apaga ao revisar
 ];
 
+/**
+ * Pessoas do ADM que podem ser Responsável ADM de um colaborador. O e-mail
+ * é o que vai na planilha (e' pra onde o resumo diario de alertas e' enviado) -
+ * lista fixa porque quem entra/sai do ADM nao muda toda hora. Atualize aqui
+ * se a equipe mudar.
+ */
+export const RESPONSAVEIS_ADM = [
+  { nome: 'Miriã Antunes', email: 'miria.antunes@angulosocial.com' },
+  { nome: 'Ludmylla Antunes', email: 'ludmylla.antunes@angulosocial.com' },
+];
+
 /** Colunas derivadas por regra de negocio - o app recalcula e sobrescreve ao salvar. */
 export const COLUNAS_CALCULADAS = new Set([
   'Documentos completos?', 'Dias aguardando assinatura', 'Alerta cobrança assinatura',

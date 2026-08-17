@@ -378,7 +378,8 @@ button { font-family: inherit; cursor: pointer; }
 .campo select:focus,
 .campo textarea:focus { outline: 2px solid var(--vermelho); outline-offset: -1px; }
 
-.campo input.erro {
+.campo input.erro,
+.campo select.erro {
   border-color: var(--vermelho);
   background: var(--vermelho-suave);
 }
