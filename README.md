@@ -204,10 +204,11 @@ como adicionar um novo tipo de documento) está no outro repositório, em
   (normalmente "Cadastro", gravada pela sincronização automática ao criar a
   linha a partir da pasta) — não a coluna "Data de entrada" da planilha.
   Colaborador cadastrado antes do histórico existir aparece como "sem data".
-  A planilha também tem uma coluna própria "Data de entrada" (17/08/2026),
-  gravada uma vez pela sincronização no momento da criação — hoje serve como
-  registro bruto na própria planilha (útil pra quem abre o Excel direto),
-  ainda não é usada nesse cálculo.
+  A planilha também tem uma coluna própria "Data de entrada" (17/08/2026,
+  primeira coluna — A —, a pedido da Sara), gravada uma vez pela
+  sincronização no momento da criação — hoje serve como registro bruto na
+  própria planilha (útil pra quem abre o Excel direto), ainda não é usada
+  nesse cálculo.
 - **Excluir colaborador** (17/08/2026) — botão na ficha remove a linha de
   verdade da planilha (não só o status), com confirmação antes de agir e um
   registro no Histórico (quem excluiu e quando) gravado antes da exclusão.
