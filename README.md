@@ -199,6 +199,11 @@ como adicionar um novo tipo de documento) está no outro repositório, em
   e feriados nacionais (fixos e móveis).
 - **Consistência** — aponta "aprovado com documento pendente" e "enviado para
   assinatura sem documentação completa". É aviso, não trava: quem decide é o ADM.
+- **Data de entrada** — não é uma coluna da planilha. É a entrada mais antiga do
+  histórico de cada colaborador (normalmente "Cadastro", gravada pela sincronização
+  automática ao criar a linha a partir da pasta). Usada pela coluna "Entrada" da
+  Lista e pelo rótulo de período do Dashboard. Colaborador cadastrado antes do
+  histórico existir aparece como "sem data".
 
 Os valores de prazo vêm da aba *Parâmetros* da planilha e estão em `js/schema.js`.
 
