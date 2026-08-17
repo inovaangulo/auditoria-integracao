@@ -8,7 +8,7 @@
 
 import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS } from '../schema.js';
 import { recalcular, alertas, paraInputDate } from '../regras.js';
-import { salvarRegistro, historicoDe } from '../dados/index.js';
+import { salvarRegistro, historicoDe, dataEntradaDe } from '../dados/index.js';
 import { el, limpar, documentoDe } from '../ui.js';
 
 const nos = {};
@@ -95,11 +95,14 @@ function campoCalculado(rotulo, texto, { largo = false } = {}) {
 
 function secaoAlertas() {
   const lista = alertas(rascunho);
+  const entrada = dataEntradaDe(rascunho);
+  const rotuloEntrada = el('div', { class: 'rotulo', texto:
+    `Entrada: ${entrada ? entrada.toLocaleDateString('pt-BR') : '— sem registro no histórico'}` });
   const filhos = lista.length
     ? lista.map((a) => el('div', { class: `alerta ${a.nivel}`, texto: a.texto }))
     : [el('div', { class: 'alerta ok', texto: 'Nenhuma pendência de prazo ou inconsistência.' })];
   return el('div', { class: 'secao', id: 'secaoAlertas' }, [
-    el('h3', { texto: 'Alertas' }), ...filhos,
+    el('h3', { texto: 'Alertas' }), rotuloEntrada, ...filhos,
   ]);
 }
 

@@ -126,7 +126,8 @@ export function renderizar(container) {
   // --- Alertas em aberto -------------------------------------------------
   const listaAlertas = [];
   for (const r of regs) {
-    for (const a of alertas(r)) listaAlertas.push({ nome: r['Nome completo'], ...a });
+    const entrada = dataEntradaDe(r);
+    for (const a of alertas(r)) listaAlertas.push({ nome: r['Nome completo'], entrada, ...a });
   }
   listaAlertas.sort((a, b) => (a.nivel === 'critico' ? -1 : 1) - (b.nivel === 'critico' ? -1 : 1));
 
@@ -134,7 +135,8 @@ export function renderizar(container) {
     el('h3', { texto: `Alertas em aberto (${listaAlertas.length})` }),
     ...(listaAlertas.length
       ? listaAlertas.slice(0, 15).map((a) =>
-          el('div', { class: `alerta ${a.nivel}`, texto: `${a.nome} — ${a.texto}` }))
+          el('div', { class: `alerta ${a.nivel}`, texto:
+            `${a.nome} — ${a.texto} (entrada: ${a.entrada ? a.entrada.toLocaleDateString('pt-BR') : '—'})` }))
       : [el('div', { class: 'alerta ok', texto: 'Nenhum alerta em aberto.' })]),
     listaAlertas.length > 15
       ? el('div', { class: 'rotulo', texto: `e mais ${listaAlertas.length - 15}…` })
