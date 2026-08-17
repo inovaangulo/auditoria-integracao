@@ -77,7 +77,7 @@ export async function salvarRegistro(editado, original) {
     await estado.fonte.salvar(estado.registros);
   }
 
-  if (original) registrarHistorico(atualizado, original);
+  if (original) await registrarHistorico(atualizado, original);
   notificar();
   return atualizado;
 }
@@ -98,20 +98,27 @@ export function chave(reg) {
 // ---------------------------------------------------------------------------
 // Historico
 // ---------------------------------------------------------------------------
-// Guardado no navegador. No modo SharePoint isso significa que o historico e'
-// por maquina, nao compartilhado - a rastreabilidade completa exige uma aba de
-// log na planilha, prevista como proximo passo.
+// Compartilhado: gravado numa aba da propria planilha (js/dados/graph.js),
+// para qualquer pessoa ver o mesmo historico de qualquer computador. So' cai
+// para o localStorage (por maquina) no modo local, que nao tem planilha para
+// gravar - ver js/dados/local.js.
 
-function lerHistorico() {
+function lerHistoricoLocal() {
   try { return JSON.parse(localStorage.getItem(CHAVE_HISTORICO) || '{}'); }
   catch { return {}; }
 }
 
-export function historicoDe(reg) {
-  return lerHistorico()[chave(reg)] || [];
+/** Historico de um colaborador, mais recente primeiro. */
+export async function historicoDe(reg) {
+  const k = chave(reg);
+  if (estado.fonte.lerHistorico) {
+    try { return await estado.fonte.lerHistorico(k); }
+    catch { return []; }
+  }
+  return lerHistoricoLocal()[k] || [];
 }
 
-function registrarHistorico(novo, antigo) {
+async function registrarHistorico(novo, antigo) {
   const mudancas = [];
   for (const campo of Object.keys(novo)) {
     if (campo.startsWith('__')) continue;
@@ -121,17 +128,23 @@ function registrarHistorico(novo, antigo) {
   }
   if (!mudancas.length) return;
 
-  const todos = lerHistorico();
+  const quando = new Date().toISOString();
+  const quem = estado.usuario || 'usuário local';
   const k = chave(novo);
-  const entrada = {
-    quando: new Date().toISOString(),
-    quem: estado.usuario || 'usuário local',
-    mudancas,
-  };
-  todos[k] = [entrada, ...(todos[k] || [])].slice(0, CONFIG.limiteHistorico);
 
+  if (estado.fonte.registrarHistorico) {
+    try {
+      await estado.fonte.registrarHistorico({ quando, quem, chave: k, colaborador: novo['Nome completo'], mudancas });
+    } catch {
+      /* historico e' acessorio: uma falha aqui nao pode desfazer o salvamento que ja aconteceu */
+    }
+    return;
+  }
+
+  const todos = lerHistoricoLocal();
+  todos[k] = [{ quando, quem, mudancas }, ...(todos[k] || [])].slice(0, CONFIG.limiteHistorico);
   try { localStorage.setItem(CHAVE_HISTORICO, JSON.stringify(todos)); }
-  catch { /* historico e' acessorio: se o storage encher, nao bloqueia o salvamento */ }
+  catch { /* idem: storage cheio nao pode bloquear o salvamento */ }
 }
 
 // ---------------------------------------------------------------------------

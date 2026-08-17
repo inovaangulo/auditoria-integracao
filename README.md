@@ -33,7 +33,7 @@ O app decide o modo pelo `clientId` em `js/config.js`.
 | Onde ficam os dados | Só no navegador de quem abriu | Na planilha do SharePoint |
 | Entrada de dados | Botão "Importar planilha" | Login com a conta @angulosocial.com |
 | Vários usuários ao mesmo tempo | **Não** | Sim |
-| Histórico de alterações | Por navegador | Por navegador (ver Limitações) |
+| Histórico de alterações | Por navegador | **Compartilhado** — aba "Histórico" na própria planilha |
 
 O modo local serve para **validar a tela antes de mexer no Azure**. Ele repete a
 limitação do Excel compartilhado de hoje — por isso o app exibe uma faixa de aviso
@@ -195,7 +195,8 @@ como adicionar um novo tipo de documento) está no outro repositório, em
   `Não se aplica`. CNH é condicional e não bloqueia.
 - **Cobrança de assinatura** — dias corridos desde o envio; zera quando aprovado.
 - **Confirmação da empresa (PJ)** — dias corridos desde o cadastro no Wehandle.
-- **Prazo da análise Wehandle** — em dias **úteis** (não considera feriados).
+- **Prazo da análise Wehandle** — em dias **úteis**, descontando sábado, domingo
+  e feriados nacionais (fixos e móveis).
 - **Consistência** — aponta "aprovado com documento pendente" e "enviado para
   assinatura sem documentação completa". É aviso, não trava: quem decide é o ADM.
 
@@ -205,10 +206,9 @@ Os valores de prazo vêm da aba *Parâmetros* da planilha e estão em `js/schema
 
 ## Limitações conhecidas
 
-- **O histórico de alterações é por navegador.** Ele registra quem/o quê/quando,
-  mas fica no computador de quem editou — não é compartilhado. Rastreabilidade real
-  para a equipe exige uma aba de log na planilha; é o próximo passo natural.
-- **Dias úteis ignoram feriados.** Só exclui sábado e domingo.
+- **Feriados municipais não entram no cálculo de dias úteis.** Só os nacionais
+  (fixos e móveis, calculados a partir da Páscoa) — municipais variam por
+  contrato/cidade e exigiriam um calendário à parte.
 - **Sem edição simultânea da mesma linha.** Se duas pessoas abrirem o mesmo
   colaborador, a última que salvar sobrescreve a outra. Com o volume atual isso é
   improvável, mas cresce com a equipe.

@@ -157,8 +157,15 @@ function secaoCalculados() {
   ]);
 }
 
-function secaoHistorico() {
-  const entradas = historicoDe(rascunho);
+/** Placeholder enquanto o historico (na planilha) ainda esta' carregando. */
+function secaoHistoricoCarregando() {
+  return el('div', { class: 'secao', id: 'secaoHistorico' }, [
+    el('h3', { texto: 'Histórico de alterações' }),
+    el('div', { class: 'rotulo', texto: 'Carregando…' }),
+  ]);
+}
+
+function secaoHistoricoPronta(entradas) {
   const itens = entradas.length
     ? entradas.slice(0, 12).map((e) => el('li', {}, [
         el('span', {}, [
@@ -180,6 +187,16 @@ function secaoHistorico() {
     el('h3', { texto: 'Histórico de alterações' }),
     el('ul', { class: 'historico' }, itens),
   ]);
+}
+
+/** Busca o historico (pode vir da planilha, entao e' assincrono) e substitui
+ * o placeholder quando chegar. Descarta o resultado se a gaveta ja' mudou de
+ * colaborador nesse meio-tempo. */
+async function carregarHistorico() {
+  const alvo = rascunho;
+  const entradas = await historicoDe(alvo).catch(() => []);
+  if (rascunho !== alvo) return;
+  substituir('secaoHistorico', secaoHistoricoPronta(entradas));
 }
 
 function rotuloCurto(campo) {
@@ -241,8 +258,9 @@ function desenhar() {
       ]),
     ]),
 
-    secaoHistorico(),
+    secaoHistoricoCarregando(),
   );
+  carregarHistorico();
 }
 
 /** Redesenha so' o que muda a cada edicao, para nao perder o foco do campo. */

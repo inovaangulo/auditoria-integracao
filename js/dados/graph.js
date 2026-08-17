@@ -16,6 +16,9 @@ import { COLUNAS } from '../schema.js';
 const CDN_MSAL = 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js';
 const GRAFO = 'https://graph.microsoft.com/v1.0';
 
+const ABA_HISTORICO = 'Histórico';
+const CABECALHO_HISTORICO = ['Data/Hora', 'Usuário', 'Chave', 'Colaborador', 'Campo', 'Valor anterior', 'Valor novo'];
+
 /** Ultima coluna da tabela (46 colunas = AT). Derivada para nao desalinhar se COLUNAS mudar. */
 function ultimaColuna() {
   const n = COLUNAS.length;
@@ -160,6 +163,70 @@ export class FonteSharePoint {
     });
     reg.__linha = linha;
     return reg;
+  }
+
+  // -------------------------------------------------------------------------
+  // Historico compartilhado (aba "Histórico" na mesma planilha)
+  // -------------------------------------------------------------------------
+  // Guardado como uma linha por campo alterado (varias linhas podem
+  // compartilhar o mesmo Data/Hora + Usuario quando vem do mesmo salvamento).
+  // Fica na planilha em vez de localStorage para que qualquer pessoa, de
+  // qualquer computador, veja o mesmo historico.
+
+  get baseHistorico() {
+    const { driveId, itemId } = CONFIG.planilha;
+    return `${GRAFO}/drives/${driveId}/items/${itemId}/workbook/worksheets('${encodeURIComponent(ABA_HISTORICO)}')`;
+  }
+
+  /** Cria a aba de historico se ainda nao existir. So' confere uma vez por sessao. */
+  async garantirAbaHistorico() {
+    if (this._historicoOk) return;
+    const { driveId, itemId } = CONFIG.planilha;
+    const lista = await this.chamar(`${GRAFO}/drives/${driveId}/items/${itemId}/workbook/worksheets?$select=name`);
+    const existe = (lista.value || []).some((w) => w.name === ABA_HISTORICO);
+    if (!existe) {
+      await this.chamar(`${GRAFO}/drives/${driveId}/items/${itemId}/workbook/worksheets/add`, {
+        method: 'POST',
+        body: JSON.stringify({ name: ABA_HISTORICO }),
+      });
+      await this.chamar(`${this.baseHistorico}/range(address='A1:G1')`, {
+        method: 'PATCH',
+        body: JSON.stringify({ values: [CABECALHO_HISTORICO] }),
+      });
+    }
+    this._historicoOk = true;
+  }
+
+  /** Grava uma entrada (uma ou mais mudancas de campo do mesmo salvamento). */
+  async registrarHistorico({ quando, quem, chave, colaborador, mudancas }) {
+    await this.garantirAbaHistorico();
+    const atuais = await this.chamar(`${this.baseHistorico}/usedRange(valuesOnly=true)?$select=rowCount`);
+    const primeiraLinha = (atuais.rowCount || 1) + 1;
+    const ultimaLinha = primeiraLinha + mudancas.length - 1;
+    const valores = mudancas.map((m) => [quando, quem, chave, colaborador, m.campo, m.de, m.para]);
+    await this.chamar(`${this.baseHistorico}/range(address='A${primeiraLinha}:G${ultimaLinha}')`, {
+      method: 'PATCH',
+      body: JSON.stringify({ values: valores }),
+    });
+  }
+
+  /** Le o historico de um colaborador, mais recente primeiro. */
+  async lerHistorico(chaveColaborador) {
+    await this.garantirAbaHistorico();
+    const dados = await this.chamar(`${this.baseHistorico}/usedRange(valuesOnly=true)?$select=values`);
+    const linhas = (dados.values || []).slice(1);
+
+    // Agrupa linhas com o mesmo Data/Hora + Usuario numa unica entrada, para
+    // exibir "3 campos mudaram nesse salvamento" em vez de 3 itens separados.
+    const grupos = new Map();
+    for (const linha of linhas) {
+      const [quando, quem, chaveLinha, , campo, de, para] = linha;
+      if (String(chaveLinha || '') !== chaveColaborador) continue;
+      const chaveGrupo = `${quando}__${quem}`;
+      if (!grupos.has(chaveGrupo)) grupos.set(chaveGrupo, { quando, quem, mudancas: [] });
+      grupos.get(chaveGrupo).mudancas.push({ campo, de, para });
+    }
+    return [...grupos.values()].sort((a, b) => new Date(b.quando) - new Date(a.quando));
   }
 }
 
