@@ -76,31 +76,35 @@ export const VALORES_DOC = ['Recebido', 'Pendente', 'Não se aplica'];
 // pastas do SharePoint. Mais de um codigo pode apontar para o mesmo campo
 // (ex.: RG e CNH satisfazem "RG ou CNH"); o primeiro da lista e' o preferido
 // na hora de nomear um arquivo novo.
+// `verificarNome: false`: documento tipicamente escaneado/assinado como
+// imagem, sem texto legivel extraivel do PDF - a sincronizacao pula a
+// conferencia de nome nesses casos (mesmo criterio da skill de auditoria de
+// pastas locais), em vez de arriscar um falso alarme.
 export const DOCUMENTOS = [
-  { campo: 'Doc: RG ou CNH',                          label: 'RG ou CNH',                       vinculo: 'todos', abrevs: ['RG', 'CNH'] },
+  { campo: 'Doc: RG ou CNH',                          label: 'RG ou CNH',                       vinculo: 'todos', abrevs: ['RG', 'CNH'], verificarNome: false },
   { campo: 'Doc: Comprovante de Endereço',            label: 'Comprovante de Endereço',         vinculo: 'todos', abrevs: ['ENDERECO'] },
   { campo: 'Doc: Ordem de Serviço',                   label: 'Ordem de Serviço',                vinculo: 'todos', abrevs: ['OS'] },
   { campo: 'Doc: Ficha de Entrega de EPI',            label: 'Ficha de Entrega de EPI',         vinculo: 'todos', abrevs: ['EPI'] },
-  { campo: 'Doc: Treinamento NR-18',                  label: 'Treinamento NR-18',               vinculo: 'todos', abrevs: ['NR18'] },
-  { campo: 'Doc: Treinamento NR-06',                  label: 'Treinamento NR-06',               vinculo: 'todos', abrevs: ['NR06'] },
+  { campo: 'Doc: Treinamento NR-18',                  label: 'Treinamento NR-18',               vinculo: 'todos', abrevs: ['NR18'], verificarNome: false },
+  { campo: 'Doc: Treinamento NR-06',                  label: 'Treinamento NR-06',               vinculo: 'todos', abrevs: ['NR06'], verificarNome: false },
   { campo: 'Doc: ASO',                                label: 'ASO',                             vinculo: 'todos', abrevs: ['ASO'] },
   { campo: 'Doc: Foto',                               label: 'Foto',                            vinculo: 'todos', abrevs: ['FOTO'] },
   { campo: 'Doc: CNH (condicional - só quando a função exige)',
-    label: 'CNH (só se a função exige)', vinculo: 'todos', condicional: true, abrevs: ['CNH'] },
+    label: 'CNH (só se a função exige)', vinculo: 'todos', condicional: true, abrevs: ['CNH'], verificarNome: false },
 
-  { campo: 'Doc: Carteira de Trabalho (CLT)',         label: 'Carteira de Trabalho (CTPS)',     vinculo: 'CLT', abrevs: ['CTPS'] },
+  { campo: 'Doc: Carteira de Trabalho (CLT)',         label: 'Carteira de Trabalho (CTPS)',     vinculo: 'CLT', abrevs: ['CTPS'], verificarNome: false },
   { campo: 'Doc: Cadastro no eSocial (CLT)',          label: 'Cadastro no eSocial',             vinculo: 'CLT', abrevs: ['ESOCIAL'] },
 
   { campo: 'Doc: CCMEI (PJ)',                         label: 'CCMEI',                           vinculo: 'PJ', abrevs: ['CCMEI'] },
   { campo: 'Doc: Contrato de Prestação de Serviço (PJ)', label: 'Contrato de Prestação de Serviço', vinculo: 'PJ', abrevs: ['CONTRATO'] },
-  { campo: 'Doc: APR (PJ)',                           label: 'APR (Análise Preliminar de Risco)', vinculo: 'PJ', abrevs: ['APR'] },
+  { campo: 'Doc: APR (PJ)',                           label: 'APR (Análise Preliminar de Risco)', vinculo: 'PJ', abrevs: ['APR'], verificarNome: false },
   { campo: 'Doc: Declaração Atendimento Leis Trabalhistas (PJ)',
     label: 'Declaração de Atendimento às Leis Trabalhistas', vinculo: 'PJ', abrevs: ['DECLLEIS'] },
   { campo: 'Doc: Declaração Inexistência de Vínculo (PJ)',
     label: 'Declaração de Inexistência de Vínculo', vinculo: 'PJ', abrevs: ['DECLVINCULO'] },
   { campo: 'Doc: Declaração Inexistência de Riscos (PJ)',
     label: 'Declaração de Inexistência de Riscos', vinculo: 'PJ', abrevs: ['DECLRISCOS'] },
-  { campo: 'Doc: Relação dos Alojamentos (PJ)',       label: 'Relação dos Alojamentos',         vinculo: 'PJ', abrevs: ['ALOJAMENTO'] },
+  { campo: 'Doc: Relação dos Alojamentos (PJ)',       label: 'Relação dos Alojamentos',         vinculo: 'PJ', abrevs: ['ALOJAMENTO'], verificarNome: false },
 ];
 
 /** Mapa TIPODOC (maiusculo, sem acento) -> lista de campos que ele satisfaz. */
@@ -109,6 +113,18 @@ export const CAMPOS_POR_ABREV = (() => {
   for (const doc of DOCUMENTOS) {
     for (const abrev of doc.abrevs || []) {
       (mapa[abrev] ||= []).push(doc.campo);
+    }
+  }
+  return mapa;
+})();
+
+/** Mapa TIPODOC -> se vale a pena conferir o nome do colaborador no conteúdo do arquivo. */
+export const VERIFICAR_NOME_POR_ABREV = (() => {
+  const mapa = {};
+  for (const doc of DOCUMENTOS) {
+    for (const abrev of doc.abrevs || []) {
+      if (doc.verificarNome === false) mapa[abrev] = false;
+      else if (!(abrev in mapa)) mapa[abrev] = true;
     }
   }
   return mapa;
