@@ -208,6 +208,11 @@ como adicionar um novo tipo de documento) está no outro repositório, em
   gravada uma vez pela sincronização no momento da criação — hoje serve como
   registro bruto na própria planilha (útil pra quem abre o Excel direto),
   ainda não é usada nesse cálculo.
+- **Excluir colaborador** (17/08/2026) — botão na ficha remove a linha de
+  verdade da planilha (não só o status), com confirmação antes de agir e um
+  registro no Histórico (quem excluiu e quando) gravado antes da exclusão.
+  Existe justamente para o ADM resolver sozinho (ex.: pasta de teste criada
+  por engano), sem precisar de acesso direto ao Excel nem acionar o time de TI.
 
 Os valores de prazo vêm da aba *Parâmetros* da planilha e estão em `js/schema.js`.
 
