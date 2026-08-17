@@ -174,6 +174,12 @@ cadastrado antes**. Os documentos entram no padrão
 `CPF/CNPJ_Nome completo_TIPODOC.ext` (ex.:
 `111.222.333-44_Ana_Paula_Ribeiro_ASO.pdf`).
 
+Como o nome da pasta é a única fonte que a rotina usa (não existe conferência
+humana no meio), um erro de digitação ali tem efeito direto — no botão
+**"Gerar nome de pasta"** (topo do app, 17/08/2026) a ADM digita nome e
+CPF/CNPJ e recebe o texto já formatado certinho pra copiar, evitando o erro
+de formatação mais comum.
+
 **Essa rotina mora num repositório separado e privado:**
 [`inovaangulo/auditoria-integracao-automacao`](https://github.com/inovaangulo/auditoria-integracao-automacao).
 Ela precisa ler nomes de arquivo que podem ter dado pessoal embutido, e o log
