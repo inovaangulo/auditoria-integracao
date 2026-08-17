@@ -166,7 +166,7 @@ que a linha vira registro e volta.
 
 ## Sincronização automática com pastas do SharePoint
 
-A pasta de documentos no SharePoint (site "admin", biblioteca TESTES_IA_ADM)
+A pasta de documentos no SharePoint (site "admin", biblioteca DOCUMENTOS_INTEGRACAO)
 é o ponto de entrada de um colaborador novo: quando a profissional da ADM
 cria a pasta no padrão `CPF/CNPJ_Nome completo`, uma rotina cadastra a linha
 correspondente na planilha sozinha — **a planilha não precisa ter ninguém
