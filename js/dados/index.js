@@ -20,6 +20,7 @@ export const estado = {
   conectado: false,
   registros: [],
   filtros: { busca: '', cliente: '', tipo: '', alerta: '' },
+  datasEntrada: new Map(), // chave -> data de entrada (Map: le' rapido, chave ja normalizada)
 };
 
 const ouvintes = new Set();
@@ -53,7 +54,27 @@ export async function recarregar() {
   // Recalcula na leitura: a planilha pode ter sido editada no Excel sem as
   // formulas atualizadas, e o app nao deve exibir prazo velho.
   estado.registros = brutos.map((r) => recalcular(r));
+
+  // Data de entrada vem do historico (primeira entrada de cada colaborador -
+  // normalmente "Cadastro", gravada pela sincronizacao automatica). So' uma
+  // leitura para todos, nao uma por colaborador. Acessoria: se falhar, as
+  // telas simplesmente mostram "sem data" em vez de travar o carregamento.
+  if (estado.fonte.lerDatasDeEntrada) {
+    try { estado.datasEntrada = await estado.fonte.lerDatasDeEntrada(); }
+    catch { estado.datasEntrada = new Map(); }
+  } else {
+    estado.datasEntrada = new Map();
+  }
+
   notificar();
+}
+
+/** Data de entrada do colaborador (Date), ou null se nao houver registro. */
+export function dataEntradaDe(reg) {
+  const valor = estado.datasEntrada.get(chave(reg));
+  if (!valor) return null;
+  const d = new Date(valor);
+  return isNaN(d) ? null : d;
 }
 
 // ---------------------------------------------------------------------------

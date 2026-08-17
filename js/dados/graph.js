@@ -228,6 +228,28 @@ export class FonteSharePoint {
     }
     return [...grupos.values()].sort((a, b) => new Date(b.quando) - new Date(a.quando));
   }
+
+  /**
+   * Data de entrada de cada colaborador = a entrada mais antiga do historico
+   * dele (normalmente "Cadastro", gravada pela sincronizacao automatica ao
+   * criar a linha). Le a aba toda de uma vez, em vez de uma chamada por
+   * colaborador - por isso devolve um Map, nao um valor unico.
+   */
+  async lerDatasDeEntrada() {
+    await this.garantirAbaHistorico();
+    const dados = await this.chamar(`${this.baseHistorico}/usedRange(valuesOnly=true)?$select=values`);
+    const linhas = (dados.values || []).slice(1);
+
+    const mapa = new Map();
+    for (const linha of linhas) {
+      const [quando, , chaveLinha] = linha;
+      const k = String(chaveLinha || '');
+      if (!k || !quando) continue;
+      const atual = mapa.get(k);
+      if (!atual || new Date(quando) < new Date(atual)) mapa.set(k, quando);
+    }
+    return mapa;
+  }
 }
 
 /** Converte o erro cru do Graph em algo que o ADM consiga agir. */

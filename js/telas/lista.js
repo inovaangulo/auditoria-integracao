@@ -5,7 +5,7 @@
  * codificada por cor no quadro exista tambem como texto.
  */
 
-import { registrosFiltrados, alertas, documentosFaltantes } from '../dados/index.js';
+import { registrosFiltrados, alertas, documentosFaltantes, dataEntradaDe } from '../dados/index.js';
 import { formatarData } from '../regras.js';
 import { el, limpar, documentoDe } from '../ui.js';
 
@@ -16,7 +16,7 @@ export function configurar({ abrirDetalhe }) {
 }
 
 const COLUNAS_TABELA = [
-  'Colaborador', 'Documento', 'Vínculo', 'Cliente', 'Cargo',
+  'Colaborador', 'Documento', 'Vínculo', 'Cliente', 'Cargo', 'Entrada',
   'Status', 'Documentação', 'Faltando', 'Alertas', 'Envio assinatura', 'Responsável',
 ];
 
@@ -45,6 +45,7 @@ export function renderizar(container) {
       el('td', { texto: r['Tipo'] || '—' }),
       el('td', { texto: r['Cliente atual'] || '—' }),
       el('td', { texto: r['Cargo / Função'] || '—' }),
+      el('td', { texto: dataEntradaDe(r)?.toLocaleDateString('pt-BR') || '—' }),
       el('td', { texto: r['Status atual'] || '—' }),
       el('td', {}, [completo
         ? pilula('Completa', '#e7f4ee', '#2e7d5b')

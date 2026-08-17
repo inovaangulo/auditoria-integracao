@@ -7,7 +7,7 @@
  */
 
 import { COLUNAS_KANBAN } from '../schema.js';
-import { registrosFiltrados, alertas, documentosFaltantes } from '../dados/index.js';
+import { registrosFiltrados, alertas, documentosFaltantes, dataEntradaDe } from '../dados/index.js';
 import { contagemDocumentos } from '../regras.js';
 import { el, limpar, plural } from '../ui.js';
 
@@ -59,6 +59,23 @@ export function renderizar(container) {
     kpi(comAlerta, 'Com alerta em aberto', comAlerta ? 'vermelho' : 'verde'),
     kpi(aprovados, 'Aprovados', 'verde'),
   ]));
+
+  // --- Periodo dos dados exibidos -----------------------------------------
+  // Data de entrada = a primeira entrada do historico de cada colaborador
+  // (normalmente "Cadastro", gravada pela sincronizacao automatica). Quem
+  // ja estava na planilha antes disso existir nao tem essa data.
+  const datas = regs.map(dataEntradaDe).filter(Boolean);
+  if (datas.length) {
+    const min = new Date(Math.min(...datas));
+    const max = new Date(Math.max(...datas));
+    const rotuloPeriodo = min.getTime() === max.getTime()
+      ? `Todos entraram em ${min.toLocaleDateString('pt-BR')}`
+      : `Entradas de ${min.toLocaleDateString('pt-BR')} a ${max.toLocaleDateString('pt-BR')}`;
+    container.append(el('div', { class: 'rotulo', style: 'margin:-10px 0 18px;' }, [
+      `📅 ${rotuloPeriodo}`,
+      datas.length < total ? ` — sem data para ${total - datas.length} colaborador(es) cadastrado(s) antes do histórico existir` : '',
+    ]));
+  }
 
   // --- Distribuicao por etapa -------------------------------------------
   const porEtapa = COLUNAS_KANBAN.map((c) => ({
