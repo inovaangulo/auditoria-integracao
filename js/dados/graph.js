@@ -10,7 +10,7 @@
  */
 
 import { CONFIG } from '../config.js';
-import { linhaParaRegistro, registroParaLinha } from './planilha.js';
+import { linhaParaRegistro, registroParaLinha, gerarArquivo, baixar } from './planilha.js';
 import { COLUNAS } from '../schema.js';
 
 const CDN_MSAL = 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js';
@@ -163,6 +163,19 @@ export class FonteSharePoint {
     });
     reg.__linha = linha;
     return reg;
+  }
+
+  /**
+   * Gera um .xlsx pra download com um retrato dos registros atuais - so' a
+   * aba de cadastro (o modo SharePoint nunca importou o arquivo inteiro, so'
+   * leu linhas via Graph, entao nao ha' as outras abas - Historico, CLT, PJ,
+   * Parametros - pra preservar). Util pra tirar uma copia pontual, nao
+   * substitui a planilha de verdade no SharePoint.
+   */
+  async exportar(registros) {
+    const dados = await gerarArquivo(registros, CONFIG.planilha.aba, null);
+    const hoje = new Date().toISOString().slice(0, 10);
+    baixar(dados, `Painel_Controle_Integracao_${hoje}.xlsx`);
   }
 
   /**
