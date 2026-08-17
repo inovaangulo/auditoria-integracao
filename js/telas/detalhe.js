@@ -300,6 +300,15 @@ async function salvar() {
     aoErro('Informe o nome do colaborador antes de salvar.');
     return;
   }
+  const responsavel = String(rascunho['Responsável ADM'] || '').trim();
+  if (!responsavel) {
+    aoErro('Informe o e-mail do Responsável ADM antes de salvar — é para lá que os avisos de alerta são enviados.');
+    return;
+  }
+  if (!responsavel.includes('@')) {
+    aoErro('O campo Responsável ADM precisa ser um e-mail (ex.: nome@angulosocial.com) — é para lá que os avisos de alerta são enviados.');
+    return;
+  }
 
   nos.btnSalvar.disabled = true;
   nos.aviso.textContent = 'Salvando…';
