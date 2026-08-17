@@ -6,6 +6,7 @@ import * as kanban from './telas/kanban.js';
 import * as dashboard from './telas/dashboard.js';
 import * as lista from './telas/lista.js';
 import * as detalhe from './telas/detalhe.js';
+import * as geradorPasta from './telas/gerador-pasta.js';
 import { el, limpar } from './ui.js';
 
 const nos = {};
@@ -17,6 +18,7 @@ function pegarNos() {
     'faixaAviso', 'filtroBusca', 'filtroCliente', 'filtroTipo', 'filtroAlerta',
     'contadorGeral', 'carregando', 'kanban', 'painelKanban', 'painelDashboard',
     'painelLista', 'abaKanban', 'abaDashboard', 'abaLista', 'inputArquivo',
+    'btnGeradorPasta',
   ];
   for (const id of ids) nos[id] = document.getElementById(id);
 }
@@ -198,6 +200,7 @@ function ligarEventos() {
   nos.btnExportar.addEventListener('click', exportar);
   nos.btnConectar.addEventListener('click', conectar);
   nos.btnAtualizar.addEventListener('click', atualizar);
+  nos.btnGeradorPasta.addEventListener('click', geradorPasta.abrir);
 }
 
 async function iniciar() {
@@ -207,6 +210,7 @@ async function iniciar() {
   detalhe.configurar({ erro: mostrarErro });
   kanban.configurar({ abrirDetalhe: detalhe.abrir, erro: mostrarErro });
   lista.configurar({ abrirDetalhe: detalhe.abrir });
+  geradorPasta.configurar();
 
   dados.aoMudar(() => { atualizarCabecalho(); renderizar(); });
 

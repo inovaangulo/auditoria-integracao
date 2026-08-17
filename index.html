@@ -17,6 +17,7 @@
   <div class="conta">
     <span id="rotuloFonte">—</span>
     <button class="btn-topo" id="btnConectar" hidden>Entrar com conta Ângulo</button>
+    <button class="btn-topo" id="btnGeradorPasta">Gerar nome de pasta</button>
     <button class="btn-topo" id="btnImportar">Importar planilha</button>
     <button class="btn-topo" id="btnExportar">Exportar planilha</button>
     <button class="btn-topo" id="btnAtualizar" hidden>Atualizar</button>
@@ -91,6 +92,37 @@
 </aside>
 
 <input type="file" id="inputArquivo" accept=".xlsx,.xlsm" hidden>
+
+<!-- Gerador do nome de pasta (padrão CPF/CNPJ_Nome completo) -->
+<div class="fundo-modal" id="fundoModalPasta" hidden></div>
+<div class="modal-central" id="modalPasta" hidden role="dialog" aria-modal="true" aria-labelledby="modalPastaTitulo">
+  <div class="modal-topo">
+    <h2 id="modalPastaTitulo">Gerar nome de pasta</h2>
+    <button class="btn-fechar" id="btnFecharModalPasta" aria-label="Fechar">&times;</button>
+  </div>
+  <div class="modal-corpo">
+    <p class="modal-explicacao">
+      Preencha os dados do colaborador e copie o resultado como nome da pasta no SharePoint —
+      já sai no formato exato que a sincronização automática reconhece.
+    </p>
+    <label class="campo largo">
+      <span>Nome completo</span>
+      <input type="text" id="pastaNome" placeholder="Ex.: Ana Paula Ribeiro">
+    </label>
+    <label class="campo largo">
+      <span>CPF ou CNPJ</span>
+      <input type="text" id="pastaDoc" placeholder="Só os números, com ou sem pontuação" inputmode="numeric">
+    </label>
+    <div class="alerta" id="pastaAviso"></div>
+    <label class="campo largo">
+      <span>Nome da pasta (copie exatamente isto)</span>
+      <div class="pasta-saida-linha">
+        <input type="text" id="pastaSaida" readonly placeholder="Preencha os campos acima…">
+        <button class="btn-secundario" id="btnCopiarPasta" disabled>Copiar</button>
+      </div>
+    </label>
+  </div>
+</div>
 
 <script type="module" src="js/app.js"></script>
 </body>
