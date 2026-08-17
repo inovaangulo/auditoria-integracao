@@ -138,7 +138,7 @@ index.html              Página única — a estrutura fixa da tela
 css/styles.css          Identidade visual Ângulo Social
 js/
   config.js             clientId do Azure e localização da planilha  ← o que você edita
-  schema.js             As 47 colunas, o checklist CLT/PJ, as etapas do Kanban
+  schema.js             As 48 colunas, o checklist CLT/PJ, as etapas do Kanban
   regras.js             Prazos, alertas e "documentos completos?"
   ui.js                 Utilitários de interface
   app.js                Liga os controles da página às telas
@@ -157,7 +157,7 @@ A rotina de sincronização automática (script, workflow e skill) mora num
 repositório separado e privado — ver a seção abaixo.
 
 **Mudou uma coluna na planilha?** Atualize `js/schema.js` na mesma posição — a
-ordem de `COLUNAS` precisa espelhar a planilha de A até AU, porque é por posição
+ordem de `COLUNAS` precisa espelhar a planilha de A até AV, porque é por posição
 que a linha vira registro e volta.
 
 **Mudou um prazo?** `PARAMETROS` em `js/schema.js`.
@@ -220,6 +220,13 @@ como adicionar um novo tipo de documento) está no outro repositório, em
   registro no Histórico (quem excluiu e quando) gravado antes da exclusão.
   Existe justamente para o ADM resolver sozinho (ex.: pasta de teste criada
   por engano), sem precisar de acesso direto ao Excel nem acionar o time de TI.
+- **Alerta de verificação de conteúdo** (17/08/2026) — quando a sincronização
+  não encontra o nome do colaborador no conteúdo de um documento (ver
+  "Conferência automática de documentos" no Plano de Trabalho), grava a
+  lista de documentos suspeitos na coluna "Alerta verificação de conteúdo" —
+  isso vira um alerta crítico ativo no Dashboard, no Kanban e na ficha, igual
+  aos outros alertas (não é só uma linha na aba Histórico). O ADM apaga o
+  campo na ficha depois de conferir o documento — é o que "resolve" o alerta.
 
 Os valores de prazo vêm da aba *Parâmetros* da planilha e estão em `js/schema.js`.
 

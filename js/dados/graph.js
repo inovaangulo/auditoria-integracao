@@ -19,7 +19,7 @@ const GRAFO = 'https://graph.microsoft.com/v1.0';
 const ABA_HISTORICO = 'Histórico';
 const CABECALHO_HISTORICO = ['Data/Hora', 'Usuário', 'Chave', 'Colaborador', 'Campo', 'Valor anterior', 'Valor novo'];
 
-/** Ultima coluna da tabela (47 colunas = AU). Derivada para nao desalinhar se COLUNAS mudar. */
+/** Ultima coluna da tabela (48 colunas = AV). Derivada para nao desalinhar se COLUNAS mudar. */
 function ultimaColuna() {
   const n = COLUNAS.length;
   let s = '';
