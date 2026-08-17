@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plano de Trabalho — Auditoria de Integração</title>
+<style>
+  :root{
+    --red:#C1272D; --red-dark:#8f1c20; --red-soft:#fbeceb;
+    --ink:#1f2226; --muted:#5f6672; --line:#e7e3e1; --bg:#faf8f7;
+    --green:#2e7d5b; --green-soft:#e7f4ee;
+    --amber:#b7860b; --amber-soft:#fbf1da;
+    --gray:#6b7280; --gray-soft:#eef0f2;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px 80px;}
+
+  /* ---------- HEADER ---------- */
+  header{background:linear-gradient(135deg,var(--red) 0%,var(--red-dark) 100%);
+    color:#fff;padding:46px 0 40px;position:relative;overflow:hidden;}
+  header::after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;
+    border:36px solid rgba(255,255,255,.09);border-radius:50%;}
+  .hwrap{max-width:1060px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.5px;
+    text-transform:uppercase;font-size:13px;opacity:.95;}
+  .brand .mark{width:26px;height:26px;border:3px solid #fff;border-right-color:transparent;
+    border-bottom-color:transparent;transform:rotate(45deg);border-radius:3px;}
+  header h1{font-size:30px;line-height:1.2;margin:18px 0 8px;font-weight:750;}
+  header .sub{font-size:16px;opacity:.95;max-width:760px;}
+  .meta{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px;}
+  .meta span{background:rgba(255,255,255,.16);padding:6px 13px;border-radius:20px;font-size:12.5px;}
+
+  /* ---------- SECTIONS ---------- */
+  section{margin-top:40px;}
+  h2{font-size:21px;margin:0 0 6px;display:flex;align-items:center;gap:12px;}
+  h2 .n{background:var(--red);color:#fff;width:30px;height:30px;border-radius:8px;
+    display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex:0 0 auto;}
+  .lead{color:var(--muted);margin:0 0 20px;max-width:820px;}
+
+  /* ---------- EXEC SUMMARY ---------- */
+  .summary{background:#fff;border:1px solid var(--line);border-left:5px solid var(--red);
+    border-radius:12px;padding:22px 24px;}
+  .summary p{margin:0 0 10px;}
+  .summary p:last-child{margin-bottom:0;}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;text-align:center;}
+  .kpi .big{font-size:30px;font-weight:800;line-height:1;}
+  .kpi.g .big{color:var(--green);} .kpi.a .big{color:var(--amber);} .kpi.r .big{color:var(--gray);}
+  .kpi small{display:block;color:var(--muted);margin-top:6px;font-size:12.5px;}
+
+  /* ---------- LEGEND ---------- */
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin:6px 0 24px;}
+  .badge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
+    padding:5px 12px;border-radius:20px;}
+  .badge .dot{width:9px;height:9px;border-radius:50%;}
+  .b-feito{background:var(--green-soft);color:var(--green);} .b-feito .dot{background:var(--green);}
+  .b-parcial{background:var(--amber-soft);color:var(--amber);} .b-parcial .dot{background:var(--amber);}
+  .b-falta{background:var(--gray-soft);color:var(--gray);} .b-falta .dot{background:var(--gray);}
+
+  /* ---------- CHECKLIST CARDS ---------- */
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:16px;
+    position:relative;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .card.feito{border-left:5px solid var(--green);}
+  .card.parcial{border-left:5px solid var(--amber);}
+  .card.falta{border-left:5px solid var(--gray);}
+  .card .top{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;}
+  .card .idx{background:var(--ink);color:#fff;width:28px;height:28px;border-radius:7px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+  .card h3{margin:0;font-size:16.5px;flex:1;padding-top:2px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-top:1px solid var(--line);}
+  .grid3 .col{padding:14px 16px 4px;border-right:1px solid var(--line);}
+  .grid3 .col:last-child{border-right:none;}
+  .grid3 .lbl{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+    margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .lbl.have{color:var(--green);} .lbl.miss{color:var(--red);} .lbl.how{color:var(--muted);}
+  .grid3 p{margin:0 0 8px;font-size:13.5px;color:#33383f;}
+  .tag{display:inline-block;background:var(--red-soft);color:var(--red-dark);font-size:11px;font-weight:700;
+    padding:2px 8px;border-radius:5px;margin-top:4px;}
+
+  /* ---------- ROADMAP ---------- */
+  .phase{background:#fff;border:1px solid var(--line);border-radius:14px;padding:0;margin-bottom:18px;overflow:hidden;}
+  .phase .ph-head{display:flex;align-items:center;gap:14px;padding:16px 22px;color:#fff;}
+  .ph0 .ph-head{background:#3a3f47;} .ph1 .ph-head{background:var(--red);}
+  .ph2 .ph-head{background:#a5561f;} .ph3 .ph-head{background:#2e7d5b;} .ph4 .ph-head{background:#4a5568;}
+  .ph-head .pn{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+    background:rgba(255,255,255,.2);padding:4px 10px;border-radius:6px;}
+  .ph-head h3{margin:0;font-size:17px;flex:1;}
+  .ph-head .when{font-size:12.5px;background:rgba(255,255,255,.18);padding:4px 11px;border-radius:20px;}
+  .ph-body{padding:18px 22px;}
+  .ph-body ul{margin:0 0 14px;padding-left:20px;}
+  .ph-body li{margin-bottom:6px;font-size:14px;}
+  .ph-body li b{color:var(--ink);}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;}
+  .chip{font-size:12px;padding:5px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--line);}
+  .chip b{color:var(--ink);}
+  .chip.eff-b{border-color:#bfe3d0;background:var(--green-soft);}
+  .chip.eff-m{border-color:#f0dfb0;background:var(--amber-soft);}
+  .chip.eff-a{border-color:#e6c3c1;background:var(--red-soft);}
+
+  /* ---------- TOOLS ---------- */
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .tool{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;}
+  .tool.rec{border:2px solid var(--red);}
+  .tool h3{margin:0 0 4px;font-size:17px;display:flex;align-items:center;gap:8px;}
+  .tool .rectag{background:var(--red);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.5px;
+    padding:3px 9px;border-radius:20px;text-transform:uppercase;}
+  .tool p{font-size:13.5px;color:#33383f;margin:8px 0;}
+  .pc{margin-top:12px;}
+  .pc div{font-size:13px;margin-bottom:5px;padding-left:20px;position:relative;}
+  .pc .p::before{content:"+";position:absolute;left:4px;color:var(--green);font-weight:800;}
+  .pc .c::before{content:"–";position:absolute;left:6px;color:var(--red);font-weight:800;}
+
+  /* ---------- CALLOUT ---------- */
+  .callout{background:var(--red-soft);border:1px solid #ecc9c7;border-radius:12px;padding:18px 22px;
+    display:flex;gap:14px;align-items:flex-start;}
+  .callout .ic{font-size:22px;line-height:1;}
+  .callout b{color:var(--red-dark);}
+  .callout p{margin:0;font-size:14px;}
+
+  /* ---------- NEXT ---------- */
+  .next{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px 4px;}
+  .next .row{display:flex;gap:14px;align-items:flex-start;padding:14px 20px;border-bottom:1px solid var(--line);}
+  .next .row:last-child{border-bottom:none;}
+  .next .num{background:var(--red);color:#fff;width:26px;height:26px;border-radius:50%;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;}
+  .next .row div p{margin:0;font-size:14px;}
+  .next .row div small{color:var(--muted);}
+
+  footer{margin-top:46px;padding-top:20px;border-top:1px solid var(--line);
+    color:var(--muted);font-size:12.5px;text-align:center;}
+
+  @media (max-width:760px){
+    .grid3,.tools,.kpis{grid-template-columns:1fr;}
+    .grid3 .col{border-right:none;border-bottom:1px solid var(--line);}
+  }
+  @media print{
+    body{background:#fff;font-size:12px;}
+    header::after{display:none;}
+    .card,.phase,.tool,.summary,.next{box-shadow:none;break-inside:avoid;}
+    section{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="brand"><span class="mark"></span> Ângulo Social · Consultoria e Projetos Socioambientais</div>
+    <h1>Auditoria de Integração — do Power Automate ao app com sincronização automática</h1>
+    <div class="sub">O caminho até aqui (Power Automate → Power Apps → app web), o que foi construído, e o que já roda sozinho versus o que ainda depende de alguém.</div>
+    <div class="meta">
+      <span>✍️ Criado por: Sara Cantão</span>
+      <span>📋 Preparado para: gestão / apresentação</span>
+      <span>🗓️ Atualizado em 17/08/2026</span>
+      <span>🔗 Plataforma: GitHub Pages + SharePoint (Microsoft Graph) + GitHub Actions</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== 0 — RESUMO EXECUTIVO ===== -->
+  <section>
+    <h2><span class="n">0</span> Resumo executivo</h2>
+    <div class="summary">
+      <p><b>Contexto:</b> o controle de documentos de integração de colaboradores (CLT e PJ) da Ângulo Social vivia numa planilha Excel compartilhada, com as limitações de sempre — só uma pessoa edita por vez, sem histórico de quem mudou o quê, planilha desatualizada circulando por e-mail.</p>
+      <p><b>Primeira tentativa — Power Automate:</b> por ter mais afinidade com a ferramenta, o ponto de partida foi tentar automatizar o fluxo com Power Automate. Ao longo do trabalho, ficou claro que conduzir o desenvolvimento aqui, com a Claude, trazia vantagens que o Power Automate sozinho não oferecia: rastreabilidade de cada decisão tomada, o sistema de <i>skills</i> (procedimentos documentados e reaproveitáveis), a possibilidade de gerar planos de trabalho visuais como este, mais facilidade para trabalhar em equipe, e mais agilidade para testar e ajustar mudanças.</p>
+      <p><b>Segunda tentativa — Power Apps:</b> para a interface (o quadro Kanban), o caminho seguinte foi o Power Apps. Não funcionou na prática: pouco intuitivo, a construção da tela ficou travada por vários dias, sempre esbarrando em erro. Essa frente foi abandonada em agosto de 2026.</p>
+      <p><b>O que foi feito:</b> em vez de insistir no Power Platform, construímos uma aplicação web independente, hospedada gratuitamente no GitHub Pages. A decisão mais importante do projeto foi <b>manter a planilha do SharePoint como fonte única da verdade</b> — o app não cria um banco de dados novo, ele lê e grava direto na mesma planilha que a equipe já usa, através da API oficial da Microsoft (Microsoft Graph). Quem abrir o arquivo no Excel continua vendo exatamente o que o app mostra, e vice-versa. Depois, foi além: uma rotina que roda sozinha, de 3 em 3 horas, lendo as pastas de documentos dos colaboradores no SharePoint e mantendo a planilha atualizada sem intervenção manual.</p>
+      <p><b>Resultado:</b> hoje qualquer pessoa com conta <b>@angulosocial.com</b> e acesso à pasta no SharePoint consegue abrir <b>inovaangulo.github.io/auditoria-integracao</b>, entrar com a própria conta Microsoft, e trabalhar no Kanban, na ficha de cada colaborador e no dashboard — com vários usuários ao mesmo tempo. E, para quem cuida da documentação, o trabalho ficou mais simples: basta criar a pasta do colaborador e subir os documentos; o cadastro e a conferência acontecem sozinhos.</p>
+      <div class="kpis">
+        <div class="kpi g"><div class="big">9 de 9</div><small>Fases do plano concluídas e testadas</small></div>
+        <div class="kpi g"><div class="big">2</div><small>Repositórios — 1 público (site), 1 privado (automação)</small></div>
+        <div class="kpi r"><div class="big">R$ 0</div><small>Custo adicional — reaproveita a licença Microsoft 365 já paga</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CALLOUT DE PRIORIDADE ===== -->
+  <section>
+    <div class="callout">
+      <div class="ic">🔒</div>
+      <p><b>Repositório privado para tudo que é sensível (correção de segurança concluída em 13/08/2026):</b> a rotina automática lida com nome de pasta e de arquivo dos colaboradores — informação que carrega CPF, CNPJ e nome completo — por isso ela roda inteira num repositório <b>separado e privado</b>, <span class="tag">inovaangulo/auditoria-integracao-automacao</span>, visível só para quem tem acesso à organização no GitHub. O site (<span class="tag">inovaangulo/auditoria-integracao</span>) continua público — exigência do plano gratuito do GitHub Pages — mas <b>nunca teve e nunca vai ter dado pessoal no código-fonte</b>: ele só lê e grava na planilha do SharePoint, sempre atrás do login da Microsoft de quem está usando. Essa separação corrigiu em definitivo um incidente real: uma pasta de colaboradora de verdade foi processada enquanto a rotina ainda rodava no repositório público, e o nome dela apareceu por um período curto no registro de execuções (ação imediata tomada: pasta removida da área de testes, registro apagado). Testado ponta a ponta depois da migração — autenticação sem senha, leitura da planilha e das pastas do SharePoint — e sem custo adicional, já que repositório privado é gratuito no plano da organização.</p>
+    </div>
+  </section>
+
+  <!-- ===== 1 — O QUE FOI ENTREGUE ===== -->
+  <section>
+    <h2><span class="n">1</span> O que foi entregue</h2>
+    <p class="lead">Cada peça do sistema, testada de ponta a ponta com a planilha real da Trivia antes de publicar. Todos os itens abaixo já estão em produção.</p>
+    <div class="legend">
+      <span class="badge b-feito"><span class="dot"></span> Já temos</span>
+      <span class="badge b-parcial"><span class="dot"></span> Funcionando, com correção pendente</span>
+    </div>
+
+    <div class="card feito">
+      <div class="top"><span class="idx">1</span>
+        <h3>Quadro Kanban</h3>
+        <span class="badge b-feito"><span class="dot"></span> Já temos</span></div>
+      <div class="grid3">
+        <div class="col"><div class="lbl have">✓ O que já temos</div>
+          <p>Cinco colunas — Pendente, Em Análise, Pronto, Aprovado, Reprovado — com um cartão por colaborador. Cada cartão mostra nome, CPF/CNPJ, cargo, vínculo (CLT/PJ) e dois badges: quantos documentos faltam e quantos alertas de prazo estão abertos. Arrastar um cartão para outra coluna muda o status e grava na planilha na hora.</p></div>
+        <div class="col"><div class="lbl miss">Falta</div>
+          <p>Nada bloqueante. Como melhoria futura, dá para adicionar um contador de tempo em cada coluna (quanto tempo cada colaborador ficou parado numa etapa).</p></div>
+        <div class="col"><div class="lbl how">Como fazer</div>
+          <p>Já funciona: abra o app, aba "Kanban". Filtros de cliente, vínculo e situação ficam acima do quadro.</p></div>
+      </div>
+    </div>
+
+    <div class="card feito">
+      <div class="top"><span class="idx">2</span>
+        <h3>Ficha do colaborador</h3>
+        <span class="badge b-feito"><span class="dot"></span> Já temos</span></div>
+      <div class="grid3">
+        <div class="col"><div class="lbl have">✓ O que já temos</div>
+          <p>Clicar num cartão abre um painel lateral com dados básicos, o checklist de documentos exigido pelo vínculo (CLT pede 10, PJ pede 15 — o app troca automaticamente), alertas de prazo em destaque — cada um mostrando a data de entrada do colaborador (17/08/2026) — e histórico de quem alterou o quê — <b>compartilhado</b>, gravado numa aba própria da planilha (13/08/2026): qualquer pessoa vê o mesmo histórico, de qualquer computador. Também tem um botão para <b>excluir o colaborador</b> (17/08/2026) — remove a linha de verdade da planilha, com confirmação antes de agir e registro de quem excluiu e quando; assim o ADM resolve casos como pasta de teste criada por engano sozinho, sem precisar de acesso direto ao Excel.</p></div>
+        <div class="col"><div class="lbl miss">Falta</div>
+          <p>Nada bloqueante.</p></div>
+        <div class="col"><div class="lbl how">Como fazer</div>
+          <p>Clique em qualquer cartão do Kanban ou linha da Lista. Edite o que precisar e clique em "Salvar".</p></div>
+      </div>
+    </div>
+
+    <div class="card feito">
+      <div class="top"><span class="idx">3</span>
+        <h3>Dashboard de indicadores</h3>
+        <span class="badge b-feito"><span class="dot"></span> Já temos</span></div>
+      <div class="grid3">
+        <div class="col"><div class="lbl have">✓ O que já temos</div>
+          <p>KPIs de topo (total de colaboradores, % com documentação completa, quantos têm alerta em aberto, quantos aprovados), distribuição por etapa do Kanban, ranking dos documentos que mais faltam, e a lista completa de alertas abertos ordenada por gravidade — cada alerta agora mostra também a data de entrada do colaborador (17/08/2026). Um rótulo indica o período de entrada dos colaboradores exibidos — data derivada do histórico compartilhado, sem precisar de coluna nova na planilha; a Lista também ganhou uma coluna "Entrada" com a mesma informação por colaborador.</p></div>
+        <div class="col"><div class="lbl miss">Falta</div>
+          <p>Nada bloqueante. Filtro por período (ex.: só quem entrou este mês) pode ser um próximo incremento — hoje o período só é exibido, não filtra.</p></div>
+        <div class="col"><div class="lbl how">Como fazer</div>
+          <p>Aba "Dashboard" no topo do app. Os mesmos filtros de cliente/vínculo/situação da tela do Kanban se aplicam aqui.</p></div>
+      </div>
+    </div>
+
+    <div class="card feito">
+      <div class="top"><span class="idx">4</span>
+        <h3>Regras de negócio automáticas</h3>
+        <span class="badge b-feito"><span class="dot"></span> Já temos</span></div>
+      <div class="grid3">
+        <div class="col"><div class="lbl have">✓ O que já temos</div>
+          <p>As mesmas contas que a planilha fazia em fórmula — "Documentos completos?", dias aguardando assinatura, dias sem confirmação do PJ, prazo da análise Wehandle em dias úteis — foram recriadas em código e recalculam a cada edição. O app também aponta inconsistências, como "aprovado com documento pendente". O cálculo de dias úteis desconta sábado, domingo <b>e feriados nacionais</b> (fixos e móveis, calculados a partir da Páscoa) — corrigido em 13/08/2026.</p></div>
+        <div class="col"><div class="lbl miss">Falta</div>
+          <p>Feriados municipais não entram no cálculo, por variarem por contrato/cidade — ver limitações.</p></div>
+        <div class="col"><div class="lbl how">Como fazer</div>
+          <p>Automático. Os prazos ficam configuráveis em um único arquivo do código (<span class="tag">js/schema.js</span>), caso a política mude.</p></div>
+      </div>
+    </div>
+
+    <div class="card feito">
+      <div class="top"><span class="idx">5</span>
+        <h3>Conexão com a planilha do SharePoint</h3>
+        <span class="badge b-feito"><span class="dot"></span> Já temos</span></div>
+      <div class="grid3">
+        <div class="col"><div class="lbl have">✓ O que já temos</div>
+          <p>Aplicativo registrado no Microsoft Entra ID (Azure AD) da Ângulo Social, com permissão para ler e gravar arquivos em nome de quem faz login. Testado ponta a ponta: login com conta @angulosocial.com, leitura da planilha real e gravação de uma edição, sem alterar nenhuma outra célula da linha.</p></div>
+        <div class="col"><div class="lbl miss">Falta</div>
+          <p>Se o arquivo estiver aberto no Excel desktop no momento da gravação, o SharePoint bloqueia a escrita até ser fechado.</p></div>
+        <div class="col"><div class="lbl how">Como fazer</div>
+          <p>Já configurado. Só é preciso repetir esse passo se a planilha for movida para outro local no SharePoint.</p></div>
+      </div>
+    </div>
+
+    <div class="card feito">
+      <div class="top"><span class="idx">6</span>
+        <h3>Publicação no GitHub Pages</h3>
+        <span class="badge b-feito"><span class="dot"></span> Já temos</span></div>
+      <div class="grid3">
+        <div class="col"><div class="lbl have">✓ O que já temos</div>
+          <p>Site no ar em <span class="tag">inovaangulo.github.io/auditoria-integracao</span>, código-fonte versionado em repositório próprio, separado de outros documentos da equipe. Nenhum dado pessoal (CPF, CNPJ, telefone) entra no repositório — ele fica só na planilha, atrás do login da Microsoft.</p></div>
+        <div class="col"><div class="lbl miss">Falta</div>
+          <p>Nada bloqueante.</p></div>
+        <div class="col"><div class="lbl how">Como fazer</div>
+          <p>Compartilhar o link do app é suficiente para uso diário — acesso ao código-fonte só é necessário para quem for ajustar o sistema.</p></div>
+      </div>
+    </div>
+
+    <div class="card feito">
+      <div class="top"><span class="idx">7</span>
+        <h3>Cadastro automático a partir da pasta de documentos</h3>
+        <span class="badge b-feito"><span class="dot"></span> Já temos</span></div>
+      <div class="grid3">
+        <div class="col"><div class="lbl have">✓ O que já temos</div>
+          <p>A planilha começa vazia. Quando a profissional da ADM cria a pasta de um colaborador novo no SharePoint (padrão <span class="tag">CPF/CNPJ_Nome completo</span>), a rotina cadastra a linha sozinha na planilha — nome, CPF ou CNPJ, vínculo (CLT/PJ inferido pelo formato do documento) e status inicial "Documento em elaboração". Ninguém digita essa linha à mão. <b>O nome da pasta é a única fonte que a rotina usa</b> para decidir tudo isso — não existe conferência humana no meio.</p></div>
+        <div class="col"><div class="lbl miss">Falta</div>
+          <p><b>Atenção operacional:</b> como o nome da pasta é a única fonte, um erro de digitação ali (CPF com dígito trocado, sublinhado no lugar errado) tem consequência direta — no melhor caso a pasta simplesmente não é reconhecida (fica de fora, sem cadastrar nada errado); no pior caso, dois colaboradores diferentes com o mesmo CPF mal digitado poderiam se confundir. Quem cria a pasta precisa copiar o CPF/CNPJ exatamente como está no documento da pessoa, sem espaço a mais. Para reduzir esse risco, adicionamos o <b>gerador de nome de pasta</b> (botão no topo do app, 17/08/2026) — a ADM digita nome e CPF/CNPJ e recebe o texto já formatado certinho pra copiar, eliminando o erro de formatação (não o de digitar o CPF errado desde o início).</p></div>
+        <div class="col"><div class="lbl how">Como fazer</div>
+          <p>Automático. A pasta é sempre a fonte da verdade: se for corrigida depois (ex.: sobrenome adicionado), a planilha acompanha — nunca o contrário.</p></div>
+      </div>
+    </div>
+
+    <div class="card feito">
+      <div class="top"><span class="idx">8</span>
+        <h3>Conferência automática de documentos</h3>
+        <span class="badge b-feito"><span class="dot"></span> Já temos</span></div>
+      <div class="grid3">
+        <div class="col"><div class="lbl have">✓ O que já temos</div>
+          <p>Ao subir um arquivo na pasta do colaborador no padrão <span class="tag">CPF/CNPJ_Nome_TIPODOC.ext</span> (ex.: ASO, RG, CCMEI), a rotina reconhece o tipo de documento e marca "Recebido" direto na planilha — sem ninguém abrir o app para atualizar manualmente. O Kanban reflete isso na próxima vez que a tela for aberta ou atualizada. Desde 17/08/2026, para cada arquivo novo a rotina também extrai o texto do PDF e confere se o nome do colaborador aparece no conteúdo (mesma heurística já usada na skill de auditoria de pastas locais) — não bloqueia nada se não bater, só grava um aviso na aba Histórico da planilha, visível na ficha do colaborador, para conferência manual.</p></div>
+        <div class="col"><div class="lbl miss">Falta</div>
+          <p>Nada bloqueante, mas com limitações conhecidas — testada ao vivo em 17/08/2026:</p>
+          <ul style="margin:6px 0 0; padding-left:18px; font-size:13px;">
+            <li>Só funciona em <b>PDF com texto legível</b> — documento escaneado/foto não tem texto pra conferir.</li>
+            <li><b>Pulada de propósito</b> em tipos que normalmente não trazem nome legível: RG, CNH, NR-18, NR-06, CTPS, APR, Relação de Alojamentos — pra não gerar falso alarme.</li>
+            <li>Só confere arquivos <b>novos</b> (ainda não marcados "Recebido") — depois de confirmado uma vez, não reprocessa.</li>
+            <li><b>Não bloqueia nada</b> — o documento é marcado "Recebido" do mesmo jeito; é só um aviso pra conferência manual.</li>
+            <li>É <b>heurística</b> (pelo menos 60% dos termos do nome precisam aparecer no texto) — pode dar falso positivo/negativo, não é garantia absoluta.</li>
+          </ul></div>
+        <div class="col"><div class="lbl how">Como fazer</div>
+          <p>Automático. Quando a checagem não bate, o documento entra na coluna "Alerta verificação de conteúdo" da planilha — isso vira um <b>alerta crítico ativo</b> (17/08/2026) no Dashboard, no Kanban e na ficha do colaborador, igual aos outros alertas de prazo, não só uma linha perdida na aba Histórico. Alguém da equipe abre a ficha, confere se o arquivo é mesmo da pessoa certa, e apaga o campo — é isso que dispensa o alerta. A aba Histórico continua guardando o registro permanente de quando isso aconteceu. Testado com casos reais: documento reconhecido, documento com nome fora do padrão (ignorado, não trava nada), e pasta com CPF/CNPJ que não bate com ninguém (reportada, não cadastrada às cegas).</p></div>
+      </div>
+    </div>
+
+    <div class="card feito">
+      <div class="top"><span class="idx">9</span>
+        <h3>Rotina agendada, sem senha armazenada, em repositório privado</h3>
+        <span class="badge b-feito"><span class="dot"></span> Já temos</span></div>
+      <div class="grid3">
+        <div class="col"><div class="lbl have">✓ O que já temos</div>
+          <p>A rotina roda sozinha de 3 em 3 horas em horário comercial (8h, 11h, 14h e 17h), de segunda a sexta, via GitHub Actions. A autenticação não usa nenhuma senha — uma credencial federada garante a identidade do robô diretamente com a Microsoft. Desde 13/08/2026, roda num repositório separado e privado — o registro de execuções não é mais público.</p></div>
+        <div class="col"><div class="lbl miss">Falta</div>
+          <p>Nada bloqueante. A exposição identificada anteriormente já foi corrigida na raiz (ver seção de limitações para o histórico).</p></div>
+        <div class="col"><div class="lbl how">Como fazer</div>
+          <p>Já configurado. O código-fonte compartilhado (schema.js, regras.js) continua no repositório público, sem nenhum dado pessoal; só a execução da rotina em si mudou de lugar.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 2 — COMO O PROJETO FOI CONSTRUÍDO ===== -->
+  <section>
+    <h2><span class="n">2</span> Como o projeto foi construído</h2>
+    <p class="lead">Ordenação real da execução: primeiro a base de dados e as regras, depois a interface, por fim a conexão com o mundo real (SharePoint e publicação).</p>
+
+    <div class="phase ph1">
+      <div class="ph-head"><span class="pn">Fase 1</span><h3>Estrutura e identidade visual</h3><span class="when">Concluído ✓</span></div>
+      <div class="ph-body">
+        <ul>
+          <li>Mapeadas as <b>46 colunas</b> da planilha "Cadastro de Documentos" e o checklist de documentos por vínculo (CLT/PJ), reaproveitando o que já existia do trabalho anterior no Power Apps.</li>
+          <li>Aplicada a identidade visual Ângulo Social — vermelho, verde, âmbar, cinza, tipografia Segoe UI — a mesma paleta de todos os relatórios da empresa.</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">Cobre: <b>schema.js, styles.css</b></span>
+          <span class="chip">Ferramenta: <b>HTML/CSS/JavaScript puro</b></span>
+          <span class="chip eff-b">Esforço: <b>Baixo</b></span>
+          <span class="chip eff-a">Retorno: <b>Alto</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase ph1">
+      <div class="ph-head"><span class="pn">Fase 2</span><h3>Quadro Kanban</h3><span class="when">Concluído ✓</span></div>
+      <div class="ph-body">
+        <ul>
+          <li>Construídas as 5 colunas de status já desenhadas no plano original do Power Apps, agora com arrastar-e-soltar real.</li>
+          <li>Cada cartão recalcula documentos faltando e alertas de prazo no momento em que a tela é aberta — não depende de fórmula salva.</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">Cobre: <b>telas/kanban.js</b></span>
+          <span class="chip">Ferramenta: <b>Drag-and-drop nativo do navegador</b></span>
+          <span class="chip eff-m">Esforço: <b>Médio</b></span>
+          <span class="chip eff-a">Retorno: <b>Alto</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase ph2">
+      <div class="ph-head"><span class="pn">Fase 3</span><h3>Ficha do colaborador e histórico</h3><span class="when">Concluído ✓</span></div>
+      <div class="ph-body">
+        <ul>
+          <li>Painel lateral com os campos da planilha organizados por seção (dados, prazos, documentos, observações), edição isolada em rascunho — só grava quando clica em "Salvar".</li>
+          <li>Registro automático de quem alterou o quê e quando, exibido como linha do tempo na própria ficha.</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">Cobre: <b>telas/detalhe.js</b></span>
+          <span class="chip">Ferramenta: <b>Formulário dinâmico por vínculo</b></span>
+          <span class="chip eff-m">Esforço: <b>Médio</b></span>
+          <span class="chip eff-a">Retorno: <b>Alto</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase ph3">
+      <div class="ph-head"><span class="pn">Fase 4</span><h3>Regras de negócio e dashboard</h3><span class="when">Concluído ✓</span></div>
+      <div class="ph-body">
+        <ul>
+          <li>Traduzidas as fórmulas do Excel (dias aguardando assinatura, prazo Wehandle, consistência do status) para código, com os mesmos parâmetros configuráveis da aba "Parâmetros" da planilha.</li>
+          <li>Dashboard com KPIs, distribuição por etapa, ranking de documentos faltantes e lista de alertas — testado com os dados reais da base piloto Trivia.</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">Cobre: <b>regras.js, telas/dashboard.js</b></span>
+          <span class="chip">Ferramenta: <b>Cálculo em tempo real, sem planilha auxiliar</b></span>
+          <span class="chip eff-m">Esforço: <b>Médio</b></span>
+          <span class="chip eff-a">Retorno: <b>Alto</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase ph4">
+      <div class="ph-head"><span class="pn">Fase 5</span><h3>Conexão com o SharePoint</h3><span class="when">Concluído ✓</span></div>
+      <div class="ph-body">
+        <ul>
+          <li>Registro do aplicativo no Microsoft Entra ID (Azure AD), com a permissão delegada <b>Files.ReadWrite.All</b> — o app só acessa o que a pessoa logada já poderia abrir sozinha no SharePoint.</li>
+          <li>Consentimento de administrador concedido pela própria Sara, que já tem esse papel no Microsoft 365 da Ângulo — sem precisar de TI externo.</li>
+          <li>Testado: login, leitura da planilha real e gravação de uma edição, confirmando que a linha certa foi alterada sem corromper CPF, CNPJ ou outros campos.</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">Cobre: <b>dados/graph.js, config.js</b></span>
+          <span class="chip">Ferramenta: <b>Microsoft Graph + MSAL (login)</b></span>
+          <span class="chip eff-a">Esforço: <b>Alto</b></span>
+          <span class="chip eff-a">Retorno: <b>Alto</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase ph0">
+      <div class="ph-head"><span class="pn">Fase 6</span><h3>Publicação no GitHub Pages</h3><span class="when">Concluído ✓</span></div>
+      <div class="ph-body">
+        <ul>
+          <li>Repositório próprio criado (<span class="tag">inovaangulo/auditoria-integracao</span>), separado dos documentos administrativos da equipe, com um <span class="tag">.gitignore</span> que bloqueia qualquer planilha por engano.</li>
+          <li>Site publicado e endereço de retorno do login cadastrado no Azure AD, liberando o acesso real fora do computador de teste.</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">Cobre: <b>GitHub Pages, git</b></span>
+          <span class="chip">Ferramenta: <b>Repositório público (código), dados no SharePoint</b></span>
+          <span class="chip eff-b">Esforço: <b>Baixo</b></span>
+          <span class="chip eff-a">Retorno: <b>Alto</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase ph2">
+      <div class="ph-head"><span class="pn">Fase 7</span><h3>Permissão segura para automação (Parte A)</h3><span class="when">Concluído ✓</span></div>
+      <div class="ph-body">
+        <ul>
+          <li><b>Passo 1 —</b> Registro do aplicativo no Microsoft Entra ID (Azure AD), como "Auditoria de Integração — Ângulo Social".</li>
+          <li><b>Passo 2 —</b> Permissão de aplicativo <b>Sites.Selected</b> adicionada ao registro — nasce sem acesso a nada, é preciso liberar site por site depois.</li>
+          <li><b>Passo 3 —</b> Consentimento do administrador concedido pela própria Sara, que já tem esse papel no Microsoft 365 da Ângulo — sem precisar de TI externo.</li>
+          <li><b>Passo 4 —</b> Tentativa de criar um "segredo de cliente" (senha do aplicativo) bloqueada pela política de segurança da própria Ângulo — boa prática, não uma falha.</li>
+          <li><b>Passo 5 —</b> No lugar do segredo, configurada uma <b>credencial federada</b> (aba "Credenciais federadas" do registro, cenário GitHub Actions, branch <span class="tag">main</span> do repositório) — o GitHub Actions passa a provar sua identidade direto com a Microsoft, sem nenhuma senha existir em lugar nenhum.</li>
+          <li><b>Passo 6 —</b> Acesso de escrita concedido especificamente aos dois sites do SharePoint envolvidos (o da planilha e o das pastas de documentos) — não ao restante do SharePoint da Ângulo. Feito via chamada direta ao Microsoft Graph (Graph Explorer), porque essa concessão específica não fica disponível no portal do Azure.</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">Cobre: <b>Microsoft Entra ID</b></span>
+          <span class="chip">Ferramenta: <b>Sites.Selected + credencial federada (OIDC)</b></span>
+          <span class="chip eff-a">Esforço: <b>Alto</b></span>
+          <span class="chip eff-a">Retorno: <b>Alto</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase ph3">
+      <div class="ph-head"><span class="pn">Fase 8</span><h3>Robô de cadastro e conferência (Parte B)</h3><span class="when">Concluído ✓</span></div>
+      <div class="ph-body">
+        <ul>
+          <li>Script que lista as pastas de colaborador, cadastra quem for novo direto na planilha, e confere os documentos por dentro pelo nome do arquivo — reaproveitando o mesmo checklist e as mesmas regras do app web.</li>
+          <li>Redesenhado duas vezes durante os testes: primeiro para não criar pasta sozinho (as pessoas criam), depois para nunca renomear a pasta — a pasta manda, a planilha acompanha.</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">Cobre: <b>scripts/sincronizar-documentos.mjs</b></span>
+          <span class="chip">Ferramenta: <b>Node.js + Microsoft Graph</b></span>
+          <span class="chip eff-a">Esforço: <b>Alto</b></span>
+          <span class="chip eff-a">Retorno: <b>Alto</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase ph4">
+      <div class="ph-head"><span class="pn">Fase 9</span><h3>Agendamento automático (Parte C)</h3><span class="when">Concluído ✓</span></div>
+      <div class="ph-body">
+        <ul>
+          <li>Rotina agendada de 3 em 3 horas em horário comercial, de segunda a sexta — ninguém precisa lembrar de rodar nada.</li>
+          <li>Disparo manual continua disponível, útil para testar uma mudança ou demonstrar ao vivo sem esperar o próximo horário.</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">Cobre: <b>GitHub Actions (schedule)</b></span>
+          <span class="chip">Ferramenta: <b>Cron: 8h/11h/14h/17h, seg-sex</b></span>
+          <span class="chip eff-b">Esforço: <b>Baixo</b></span>
+          <span class="chip eff-a">Retorno: <b>Alto</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 3 — COMO USAR NO DIA A DIA ===== -->
+  <section>
+    <h2><span class="n">3</span> Como usar no dia a dia</h2>
+    <p class="lead">Passo a passo para quem vai operar o app — sem instalar nada, só abrir o navegador.</p>
+    <div class="next">
+      <div class="row"><span class="num">1</span><div><p><b>Abra o endereço:</b> <span class="tag">inovaangulo.github.io/auditoria-integracao</span></p><small>Funciona em qualquer computador com internet — não precisa instalar nada.</small></div></div>
+      <div class="row"><span class="num">2</span><div><p><b>Clique em "Entrar com conta Ângulo"</b> e faça login com seu e-mail @angulosocial.com.</p><small>O app só mostra o que sua conta já teria permissão de abrir no SharePoint.</small></div></div>
+      <div class="row"><span class="num">3</span><div><p><b>Use os filtros</b> de cliente, vínculo (CLT/PJ) e situação para achar rápido quem procura, ou busque por nome, CPF ou CNPJ.</p></div></div>
+      <div class="row"><span class="num">4</span><div><p><b>No Kanban</b>, arraste um cartão para outra coluna para mudar o status — grava direto na planilha, sem precisar abrir a ficha.</p></div></div>
+      <div class="row"><span class="num">5</span><div><p><b>Clique num cartão</b> para abrir a ficha completa: atualize os documentos (Recebido / Pendente / Não se aplica) e os dados de prazo.</p></div></div>
+      <div class="row"><span class="num">6</span><div><p><b>Clique em "Salvar"</b> antes de fechar a ficha — sem isso, a edição não vai para a planilha.</p><small>O rodapé mostra "Salvo" em verde quando a gravação der certo.</small></div></div>
+      <div class="row"><span class="num">7</span><div><p><b>Use o Dashboard</b> para uma visão geral rápida antes de uma reunião, e a <b>Lista</b> quando precisar buscar como numa tabela do Excel.</p></div></div>
+    </div>
+  </section>
+
+  <!-- ===== 4 — AUTOMÁTICO x MANUAL ===== -->
+  <section>
+    <h2><span class="n">4</span> O que é automático e o que ainda depende de alguém</h2>
+    <p class="lead">Separação clara do que a rotina resolve sozinha e do que continua exigindo uma decisão ou ação humana.</p>
+    <div class="tools">
+      <div class="tool rec">
+        <h3>🤖 Automático <span class="rectag">Roda sozinho</span></h3>
+        <div class="pc">
+          <div class="p">Cadastrar colaborador novo na planilha, a partir da pasta criada no SharePoint</div>
+          <div class="p">Inferir o vínculo (CLT/PJ) pelo formato do CPF ou CNPJ</div>
+          <div class="p">Atualizar o nome na planilha se a pasta for corrigida depois</div>
+          <div class="p">Reconhecer o tipo de cada documento pelo nome do arquivo e marcar "Recebido"</div>
+          <div class="p">Calcular prazos, alertas e "documentos completos?" a cada edição</div>
+          <div class="p">Apontar inconsistências (ex.: aprovado com documento pendente)</div>
+          <div class="p">Rodar de novo sozinho a cada 3 horas, em horário comercial</div>
+        </div>
+      </div>
+      <div class="tool">
+        <h3>🙋 Continua manual</h3>
+        <div class="pc">
+          <div class="p">Receber e verificar o documento em si (o PDF, a foto do RG) — o sistema só guarda o status, não o arquivo em algum lugar próprio</div>
+          <div class="p">Criar a pasta do colaborador com o nome no padrão certo</div>
+          <div class="p">Subir o arquivo do documento com o nome no padrão certo</div>
+          <div class="p">Decidir e mover o status entre etapas do Kanban (aprovar, reprovar, mandar para análise)</div>
+          <div class="p">Agir sobre um alerta (ex.: de fato entrar em contato para cobrar assinatura)</div>
+          <div class="p">Login de cada pessoa no app — nunca é automático, por segurança</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 5 — LIMITAÇÕES E PONTOS DE ATENÇÃO ===== -->
+  <section>
+    <h2><span class="n">5</span> Limitações e pontos de atenção</h2>
+    <p class="lead">Nada aqui impede o uso diário — mas vale ter em mente.</p>
+
+
+    <div class="card parcial">
+      <div class="top"><span class="idx">!</span><h3>Sem edição simultânea da mesma linha</h3>
+      <span class="badge b-parcial"><span class="dot"></span> Baixo risco hoje</span></div>
+      <p style="margin:0 0 4px;font-size:14px;color:#33383f;">Se duas pessoas abrirem a ficha do mesmo colaborador ao mesmo tempo, quem salvar por último sobrescreve a outra edição. Com a equipe atual (só Sara e a coordenadora), isso é improvável — mas cresce se mais pessoas passarem a editar.</p>
+    </div>
+
+    <div class="card parcial">
+      <div class="top"><span class="idx">!</span><h3>Excel aberto bloqueia a gravação</h3>
+      <span class="badge b-parcial"><span class="dot"></span> Atenção operacional</span></div>
+      <p style="margin:0 0 4px;font-size:14px;color:#33383f;">Se alguém estiver com a planilha aberta no Excel desktop no momento em que o app tenta salvar, o SharePoint recusa a escrita até o arquivo ser fechado. O app mostra uma mensagem de erro clara quando isso acontece.</p>
+    </div>
+
+    <div class="card parcial">
+      <div class="top"><span class="idx">!</span><h3>Dias úteis não descontam feriados</h3>
+      <span class="badge b-parcial"><span class="dot"></span> Precisão do prazo</span></div>
+      <p style="margin:0 0 4px;font-size:14px;color:#33383f;"><s>O cálculo de prazo da análise Wehandle conta dias úteis excluindo só sábado e domingo.</s> <b>Corrigido em 13/08/2026</b> — agora desconta também os feriados nacionais (fixos e móveis, calculados a partir da Páscoa). Feriados municipais continuam de fora, por variarem por contrato/cidade.</p>
+    </div>
+
+    <div class="card parcial">
+      <div class="top"><span class="idx">!</span><h3>Registro de execuções da rotina — exposição corrigida</h3>
+      <span class="badge b-parcial"><span class="dot"></span> Resolvido, lição registrada</span></div>
+      <p style="margin:0 0 4px;font-size:14px;color:#33383f;">Em 13/08/2026, uma pasta de uma colaboradora real acabou processada na área de testes enquanto a rotina ainda rodava no repositório público — o nome dela apareceu no registro de execução por um período curto. Ação imediata tomada: pasta removida da área de testes, registro apagado, e a rotina ajustada para não imprimir mais nome de arquivo nenhum. <b>Correção definitiva já concluída no mesmo dia:</b> a rotina foi movida para um repositório separado e privado — o registro de execuções deixou de ser público. Mantido aqui como registro do que aconteceu e de como foi tratado.</p>
+    </div>
+  </section>
+
+  <!-- ===== CALLOUT ===== -->
+  <section>
+    <div class="callout">
+      <div class="ic">🛡️</div>
+      <p><b>Princípio-guia:</b> a planilha do SharePoint continua sendo a única fonte da verdade — o app nunca cria uma cópia paralela dos dados. E como o repositório do GitHub é público (exigência do plano gratuito), nenhum dado pessoal — CPF, CNPJ, telefone — pode, em hipótese alguma, ser adicionado ao código-fonte. Esses dados vivem exclusivamente na planilha, protegidos pelo login da Microsoft.</p>
+    </div>
+  </section>
+
+  <!-- ===== 6 — PRÓXIMOS PASSOS ===== -->
+  <section>
+    <h2><span class="n">6</span> Próximos passos</h2>
+    <div class="next">
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Registrar o app no Azure AD e publicar no GitHub Pages</b> — concluído em 11/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Sincronização automática com pastas do SharePoint (Partes A, B e C)</b> — cadastro automático, conferência de documentos e agendamento a cada 3 horas — concluído em 13/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Calendário de feriados nacionais no cálculo de dias úteis</b> — concluído em 13/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Migração da rotina de sincronização para repositório privado</b> — corrige em definitivo a exposição pública do registro de execuções — concluído e testado em 13/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Histórico de alterações compartilhado</b> — gravado numa aba própria da planilha, mesmo histórico para todo mundo, de qualquer computador — concluído em 13/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Período de entrada na Lista e no Dashboard</b> — coluna "Entrada" na Lista e rótulo de período no Dashboard, derivados da primeira entrada do histórico de cada colaborador (sem coluna nova na planilha) — concluído em 17/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Data de entrada nos alertas</b> — cada alerta em aberto no Dashboard e na ficha do colaborador mostra a data de entrada, testado ponta a ponta — concluído em 17/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Conferência de conteúdo dos documentos</b> — confere se o PDF é da pessoa certa (não só o nome do arquivo), testada ao vivo contra a pasta de produção renomeada (DOCUMENTOS_INTEGRACAO) — concluído em 17/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Coluna "Data de entrada" na planilha</b> — gravada pela sincronização no momento da criação, no mesmo passo que cria a linha (mais confiável que depender só do histórico); é a primeira coluna (A), a pedido da Sara, com Nome completo e as demais deslocando uma posição — concluído em 17/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Excluir colaborador pela ficha</b> — ADM resolve sozinho casos como pasta de teste criada por engano, sem precisar de acesso direto ao Excel nem acionar o time de TI — concluído em 17/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Gerador de nome de pasta</b> — a ADM digita nome e CPF/CNPJ e recebe o texto pronto pra copiar como nome da pasta, no formato exato que a sincronização reconhece — reduz o erro de digitação mais comum, já que o nome da pasta é a única fonte que a rotina usa — concluído em 17/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Alerta ativo de verificação de conteúdo</b> — a divergência de nome no documento agora aparece como alerta crítico no Dashboard, Kanban e ficha (igual aos outros alertas), não só como linha na aba Histórico; o ADM apaga o campo na ficha depois de conferir, o que dispensa o alerta — concluído em 17/08/2026.</p></div></div>
+      <div class="row"><span class="num">1</span><div><p><b>Compartilhar o link do app</b> com quem for usar no dia a dia (ADM, supervisores) — basta ter conta @angulosocial.com e acesso à pasta da planilha no SharePoint.</p></div></div>
+      <div class="row"><span class="num">2</span><div><p><b>Notificação automática por e-mail ou Teams</b> — os alertas de contagem de dias hoje só aparecem visualmente no Dashboard, na ficha e no Kanban; a Sara pediu explicitamente para não perder de vista esse ponto (17/08/2026) — precisam também chegar por e-mail ou pelo Teams do pessoal da ADM, sem precisar abrir o app pra descobrir que um prazo estourou.</p></div></div>
+    </div>
+  </section>
+
+  <footer>
+    Ângulo Social · Consultoria e Projetos Socioambientais — Auditoria de Integração · Documento de trabalho interno · Atualizado em 17/08/2026
+  </footer>
+
+</div>
+</body>
+</html>
