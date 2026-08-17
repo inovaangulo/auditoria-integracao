@@ -255,6 +255,12 @@ export function alertas(reg) {
   if (String(r['Consistência do status']).startsWith('Inconsistente')) {
     lista.push({ nivel: 'critico', texto: r['Consistência do status'] });
   }
+  if (r['Alerta verificação de conteúdo']) {
+    lista.push({
+      nivel: 'critico',
+      texto: `Conferir documento(s) — nome não encontrado no conteúdo: ${r['Alerta verificação de conteúdo']}`,
+    });
+  }
   if (r['Alerta cobrança assinatura']) {
     lista.push({
       nivel: 'critico',

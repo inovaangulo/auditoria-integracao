@@ -245,6 +245,11 @@ function desenhar() {
         campoTexto('Data integração agendada', 'Data integração agendada', { tipo: 'date' }),
         campoTexto('Resultado análise', 'Resultado análise'),
         campoTexto('Motivo reprovação', 'Motivo reprovação', { largo: true }),
+        campoTexto(
+          'Alerta de verificação de conteúdo (apague depois de conferir o documento)',
+          'Alerta verificação de conteúdo',
+          { largo: true }
+        ),
       ]),
     ]),
 

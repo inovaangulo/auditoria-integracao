@@ -1,7 +1,7 @@
 /**
  * Espelho da aba "Cadastro de Documentos" do Painel_Controle_Integracao_Trivia_Tabela.xlsx.
  *
- * A ordem de COLUNAS tem que bater exatamente com a planilha (A ate AU): tanto a
+ * A ordem de COLUNAS tem que bater exatamente com a planilha (A ate AV): tanto a
  * importacao do .xlsx quanto a API do Graph devolvem a linha como um array
  * posicional, e e' por essa ordem que a linha vira objeto e volta a ser linha.
  * Se alguem inserir uma coluna na planilha, inclua-a aqui na mesma posicao.
@@ -55,6 +55,7 @@ export const COLUNAS = [
   'Doc: Declaração Inexistência de Vínculo (PJ)',       // AS
   'Doc: Declaração Inexistência de Riscos (PJ)',        // AT
   'Doc: Relação dos Alojamentos (PJ)',      // AU
+  'Alerta verificação de conteúdo',         // AV - lista dos documentos com nome não conferido; ADM apaga ao revisar
 ];
 
 /** Colunas derivadas por regra de negocio - o app recalcula e sobrescreve ao salvar. */
