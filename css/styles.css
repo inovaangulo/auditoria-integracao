@@ -288,6 +288,19 @@ button { font-family: inherit; cursor: pointer; }
 }
 .btn-secundario:hover { background: var(--cinza-suave); }
 
+.btn-perigo {
+  background: var(--papel);
+  color: var(--vermelho-escuro);
+  border: 1px solid var(--vermelho-suave);
+  padding: 9px 16px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: auto;
+}
+.btn-perigo:hover { background: var(--vermelho-suave); }
+.btn-perigo:disabled { color: var(--cinza); border-color: var(--cinza-suave); cursor: default; }
+
 .aviso-salvo { font-size: 12px; color: var(--verde); font-weight: 600; }
 
 /* -------------------------------------------------------------- formulário */

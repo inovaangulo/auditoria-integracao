@@ -8,7 +8,7 @@
 
 import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS } from '../schema.js';
 import { recalcular, alertas, paraInputDate } from '../regras.js';
-import { salvarRegistro, historicoDe, dataEntradaDe } from '../dados/index.js';
+import { salvarRegistro, excluirRegistro, historicoDe, dataEntradaDe } from '../dados/index.js';
 import { el, limpar, documentoDe } from '../ui.js';
 
 const nos = {};
@@ -25,12 +25,14 @@ export function configurar({ erro }) {
   nos.sub = document.getElementById('gavetaSub');
   nos.corpo = document.getElementById('gavetaCorpo');
   nos.btnSalvar = document.getElementById('btnSalvar');
+  nos.btnExcluir = document.getElementById('btnExcluir');
   nos.aviso = document.getElementById('avisoSalvo');
 
   document.getElementById('btnFecharGaveta').addEventListener('click', fechar);
   document.getElementById('btnCancelar').addEventListener('click', fechar);
   nos.fundo.addEventListener('click', fechar);
   nos.btnSalvar.addEventListener('click', salvar);
+  nos.btnExcluir.addEventListener('click', excluir);
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !nos.gaveta.hidden) fechar();
@@ -306,6 +308,29 @@ async function salvar() {
     nos.aviso.textContent = '';
     aoErro(err.message);
   } finally {
+    nos.btnSalvar.disabled = false;
+  }
+}
+
+async function excluir() {
+  if (!original) return;
+  const nome = original['Nome completo'] || 'este colaborador';
+  const confirmado = window.confirm(
+    `Excluir ${nome} da planilha? A linha é removida de verdade (não só o status) e não tem desfazer no app ` +
+    `- só pelo histórico de versões do arquivo no SharePoint.`
+  );
+  if (!confirmado) return;
+
+  nos.btnExcluir.disabled = true;
+  nos.btnSalvar.disabled = true;
+  nos.aviso.textContent = 'Excluindo…';
+  try {
+    await excluirRegistro(original);
+    fechar();
+  } catch (err) {
+    nos.aviso.textContent = '';
+    aoErro(err.message);
+    nos.btnExcluir.disabled = false;
     nos.btnSalvar.disabled = false;
   }
 }

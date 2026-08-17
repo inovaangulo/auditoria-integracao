@@ -110,6 +110,39 @@ export async function mudarStatus(reg, novoStatus) {
   return salvarRegistro({ ...reg, 'Status atual': novoStatus }, original);
 }
 
+/**
+ * Exclui o colaborador da planilha (linha removida de verdade, nao so'
+ * limpa as celulas). Registra no historico ANTES de apagar, para nao
+ * perder o rastro de quem excluiu e quando.
+ */
+export async function excluirRegistro(reg) {
+  const k = chave(reg);
+  const quando = new Date().toISOString();
+  const quem = estado.usuario || 'usuário local';
+
+  if (estado.fonte.registrarHistorico) {
+    try {
+      await estado.fonte.registrarHistorico({
+        quando, quem, chave: k, colaborador: reg['Nome completo'],
+        mudancas: [{ campo: 'Exclusão', de: '', para: 'Colaborador excluído da planilha' }],
+      });
+    } catch {
+      /* historico e' acessorio - uma falha aqui nao pode impedir a exclusao */
+    }
+  }
+
+  if (estado.fonte.excluirRegistro) {
+    await estado.fonte.excluirRegistro(reg);
+    // __linha de quem estava abaixo mudou - mais simples relêr a planilha
+    // inteira do que recalcular tudo na mao.
+    await recarregar();
+  } else {
+    estado.registros = estado.registros.filter((r) => chave(r) !== k);
+    await estado.fonte.salvar(estado.registros);
+    notificar();
+  }
+}
+
 /** Identidade do registro: CPF/CNPJ quando houver, senao o nome. */
 export function chave(reg) {
   const doc = String(reg['CPF'] || reg['CNPJ (se PJ)'] || '').replace(/\D/g, '');

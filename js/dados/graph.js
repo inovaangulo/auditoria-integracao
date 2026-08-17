@@ -165,6 +165,22 @@ export class FonteSharePoint {
     return reg;
   }
 
+  /**
+   * Apaga a linha do colaborador e desloca as de baixo para cima (Graph
+   * `range/delete`, shift "Up") - remove mesmo, nao so' limpa as celulas.
+   * `__linha` de quem estiver na memoria fica desatualizado apos isso; por
+   * isso o app recarrega a planilha inteira em seguida.
+   */
+  async excluirRegistro(reg) {
+    const linha = reg.__linha;
+    if (!linha) return; // nunca foi gravado - nada para apagar
+    const endereco = `A${linha}:${this.colunaFinal}${linha}`;
+    await this.chamar(`${this.base}/range(address='${endereco}')/delete`, {
+      method: 'POST',
+      body: JSON.stringify({ shift: 'Up' }),
+    });
+  }
+
   // -------------------------------------------------------------------------
   // Historico compartilhado (aba "Histórico" na mesma planilha)
   // -------------------------------------------------------------------------
