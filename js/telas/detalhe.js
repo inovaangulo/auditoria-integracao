@@ -74,9 +74,23 @@ function definir(campo, valor) {
 // ---------------------------------------------------------------------------
 
 function campoTexto(rotulo, campo, { tipo = 'text', largo = false } = {}) {
-  const input = el('input', { type: tipo, value: tipo === 'date' ? paraInputDate(rascunho[campo]) : (rascunho[campo] ?? '') });
+  const input = el('input', {
+    type: tipo,
+    value: tipo === 'date' ? paraInputDate(rascunho[campo]) : (rascunho[campo] ?? ''),
+    'data-campo': campo,
+  });
+  input.addEventListener('input', () => input.classList.remove('erro'));
   input.addEventListener('change', () => definir(campo, input.value));
   return el('label', { class: `campo${largo ? ' largo' : ''}` }, [el('span', { texto: rotulo }), input]);
+}
+
+/** Marca um campo em vermelho e leva o foco até ele, para sinalizar o que precisa corrigir. */
+function marcarErroNoCampo(campo) {
+  const input = nos.corpo.querySelector(`[data-campo="${campo}"]`);
+  if (!input) return;
+  input.classList.add('erro');
+  input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  input.focus();
 }
 
 function campoSelect(rotulo, campo, opcoes, { largo = false } = {}) {
@@ -294,19 +308,26 @@ function substituir(id, novo) {
 // Gravacao
 // ---------------------------------------------------------------------------
 
+/** Bloqueia o salvamento: mostra um alerta (pop-up) e destaca o campo com o problema em vermelho. */
+function bloquearSalvamento(campo, mensagem) {
+  aoErro(mensagem);
+  marcarErroNoCampo(campo);
+  window.alert(mensagem);
+}
+
 async function salvar() {
   if (!rascunho) return;
   if (!String(rascunho['Nome completo'] || '').trim()) {
-    aoErro('Informe o nome do colaborador antes de salvar.');
+    bloquearSalvamento('Nome completo', 'Informe o nome do colaborador antes de salvar.');
     return;
   }
   const responsavel = String(rascunho['Responsável ADM'] || '').trim();
   if (!responsavel) {
-    aoErro('Informe o e-mail do Responsável ADM antes de salvar — é para lá que os avisos de alerta são enviados.');
+    bloquearSalvamento('Responsável ADM', 'Informe o e-mail do Responsável ADM antes de salvar — é para lá que os avisos de alerta são enviados.');
     return;
   }
   if (!responsavel.includes('@')) {
-    aoErro('O campo Responsável ADM precisa ser um e-mail (ex.: nome@angulosocial.com) — é para lá que os avisos de alerta são enviados.');
+    bloquearSalvamento('Responsável ADM', 'O campo Responsável ADM precisa ser um e-mail (ex.: nome@angulosocial.com) — é para lá que os avisos de alerta são enviados.');
     return;
   }
 

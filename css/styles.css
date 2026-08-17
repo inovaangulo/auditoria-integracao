@@ -378,6 +378,11 @@ button { font-family: inherit; cursor: pointer; }
 .campo select:focus,
 .campo textarea:focus { outline: 2px solid var(--vermelho); outline-offset: -1px; }
 
+.campo input.erro {
+  border-color: var(--vermelho);
+  background: var(--vermelho-suave);
+}
+
 .campo .calculado {
   font-size: 13px;
   padding: 7px 9px;
