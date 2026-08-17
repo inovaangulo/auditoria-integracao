@@ -8,53 +8,53 @@
  */
 
 export const COLUNAS = [
-  'Nome completo',                          // A
-  'CPF',                                    // B
-  'CNPJ (se PJ)',                           // C
-  'Tipo',                                   // D
-  'Cliente atual',                          // E
-  'Cargo / Função',                         // F
-  'Doc: RG ou CNH',                         // G
-  'Doc: Comprovante de Endereço',           // H
-  'Doc: Carteira de Trabalho (CLT)',        // I
-  'Doc: CCMEI (PJ)',                        // J
-  'Documentos completos?',                  // K  - calculado
-  'Status atual',                           // L
-  'Data envio p/ assinatura',               // M
-  'Dias aguardando assinatura',             // N  - calculado
-  'Alerta cobrança assinatura',             // O  - calculado
-  'Data cadastro empresa Wehandle (PJ)',    // P
-  'Dias sem confirmação (PJ)',              // Q  - calculado
-  'Alerta confirmação pendente (PJ)',       // R  - calculado
-  'Data envio p/ análise Wehandle',         // S
-  'Dias sem confirmação',                   // T  - calculado
-  'Situação prazo Wehandle',                // U  - calculado
-  'Consistência do status',                 // V  - calculado
-  'Resultado análise',                      // W
-  'Motivo reprovação',                      // X
-  'Data aprovação',                         // Y
-  'Data integração agendada',               // Z
-  'Responsável ADM',                        // AA
-  'WhatsApp contato',                       // AB
-  'Clientes / projetos em que já atuou',    // AC
-  'Observações',                            // AD
-  'CPF (só números)',                       // AE - calculado
-  'CNPJ (só números)',                      // AF - calculado
-  'Doc: Ordem de Serviço',                  // AG
-  'Doc: Ficha de Entrega de EPI',           // AH
-  'Doc: Treinamento NR-18',                 // AI
-  'Doc: Treinamento NR-06',                 // AJ
-  'Doc: ASO',                               // AK
-  'Doc: Foto',                              // AL
-  'Doc: CNH (condicional - só quando a função exige)',  // AM
-  'Doc: Cadastro no eSocial (CLT)',         // AN
-  'Doc: Contrato de Prestação de Serviço (PJ)',         // AO
-  'Doc: APR (PJ)',                          // AP
-  'Doc: Declaração Atendimento Leis Trabalhistas (PJ)', // AQ
-  'Doc: Declaração Inexistência de Vínculo (PJ)',       // AR
-  'Doc: Declaração Inexistência de Riscos (PJ)',        // AS
-  'Doc: Relação dos Alojamentos (PJ)',      // AT
-  'Data de entrada',                        // AU - gravada uma vez, na criação do cadastro
+  'Data de entrada',                        // A  - gravada uma vez, na criação do cadastro
+  'Nome completo',                          // B
+  'CPF',                                    // C
+  'CNPJ (se PJ)',                           // D
+  'Tipo',                                   // E
+  'Cliente atual',                          // F
+  'Cargo / Função',                         // G
+  'Doc: RG ou CNH',                         // H
+  'Doc: Comprovante de Endereço',           // I
+  'Doc: Carteira de Trabalho (CLT)',        // J
+  'Doc: CCMEI (PJ)',                        // K
+  'Documentos completos?',                  // L  - calculado
+  'Status atual',                           // M
+  'Data envio p/ assinatura',               // N
+  'Dias aguardando assinatura',             // O  - calculado
+  'Alerta cobrança assinatura',             // P  - calculado
+  'Data cadastro empresa Wehandle (PJ)',    // Q
+  'Dias sem confirmação (PJ)',              // R  - calculado
+  'Alerta confirmação pendente (PJ)',       // S  - calculado
+  'Data envio p/ análise Wehandle',         // T
+  'Dias sem confirmação',                   // U  - calculado
+  'Situação prazo Wehandle',                // V  - calculado
+  'Consistência do status',                 // W  - calculado
+  'Resultado análise',                      // X
+  'Motivo reprovação',                      // Y
+  'Data aprovação',                         // Z
+  'Data integração agendada',               // AA
+  'Responsável ADM',                        // AB
+  'WhatsApp contato',                       // AC
+  'Clientes / projetos em que já atuou',    // AD
+  'Observações',                            // AE
+  'CPF (só números)',                       // AF - calculado
+  'CNPJ (só números)',                      // AG - calculado
+  'Doc: Ordem de Serviço',                  // AH
+  'Doc: Ficha de Entrega de EPI',           // AI
+  'Doc: Treinamento NR-18',                 // AJ
+  'Doc: Treinamento NR-06',                 // AK
+  'Doc: ASO',                               // AL
+  'Doc: Foto',                              // AM
+  'Doc: CNH (condicional - só quando a função exige)',  // AN
+  'Doc: Cadastro no eSocial (CLT)',         // AO
+  'Doc: Contrato de Prestação de Serviço (PJ)',         // AP
+  'Doc: APR (PJ)',                          // AQ
+  'Doc: Declaração Atendimento Leis Trabalhistas (PJ)', // AR
+  'Doc: Declaração Inexistência de Vínculo (PJ)',       // AS
+  'Doc: Declaração Inexistência de Riscos (PJ)',        // AT
+  'Doc: Relação dos Alojamentos (PJ)',      // AU
 ];
 
 /** Colunas derivadas por regra de negocio - o app recalcula e sobrescreve ao salvar. */

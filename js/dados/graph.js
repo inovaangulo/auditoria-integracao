@@ -133,8 +133,8 @@ export class FonteSharePoint {
 
     const registros = [];
     linhas.slice(1).forEach((linha, i) => {
-      if (!String(linha[0] || '').trim()) return;  // sem nome nao e' cadastro
       const reg = linhaParaRegistro(linha);
+      if (!String(reg['Nome completo'] || '').trim()) return;  // sem nome nao e' cadastro
       reg.__linha = i + 2;  // +1 do cabecalho, +1 porque a planilha comeca em 1
       registros.push(reg);
     });
