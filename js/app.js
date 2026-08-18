@@ -48,6 +48,25 @@ function mostrarErro(mensagem) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+/** Faixa fixa "nova versão disponível" - não some sozinha, só ao clicar em Atualizar. */
+function mostrarAvisoAtualizacao() {
+  limpar(nos.faixaAviso);
+  nos.faixaAviso.hidden = false;
+  nos.faixaAviso.style.borderLeftColor = '#2e7d5b';
+  nos.faixaAviso.style.background = '#e7f4ee';
+  nos.faixaAviso.style.color = '#1e5a3f';
+  nos.faixaAviso.append(el('div', { style: 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;' }, [
+    '🔄 Uma versão mais nova do app está disponível.',
+    el('button', {
+      class: 'btn-topo',
+      style: 'background:#2e7d5b;',
+      texto: 'Atualizar agora',
+      onclick: () => window.location.reload(),
+    }),
+  ]));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 /** Aviso permanente do modo local — a limitação precisa ficar à vista. */
 function avisoDeModo() {
   if (MODO_SHAREPOINT) return;
@@ -252,9 +271,28 @@ document.addEventListener('DOMContentLoaded', iniciar);
 
 // Service worker minimo, so' para o navegador oferecer "Instalar app" (cria
 // um icone/atalho de verdade pra quem usa no dia a dia) - nao guarda nada
-// offline de proposito, os dados vem sempre do SharePoint.
+// offline de proposito, os dados vem sempre do SharePoint. Tambem detecta
+// quando uma versao nova do app foi publicada e avisa quem esta' com a tela
+// aberta - sem isso, a pessoa podia continuar numa versao antiga sem saber
+// que uma alteracao pedida ja' tinha sido feita.
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {
+  navigator.serviceWorker.register('sw.js').then((registro) => {
+    registro.addEventListener('updatefound', () => {
+      const novo = registro.installing;
+      if (!novo) return;
+      novo.addEventListener('statechange', () => {
+        // "installed" com controller ja' existente = havia uma versao rodando
+        // antes desta - e' uma atualizacao de verdade, nao a primeira visita.
+        if (novo.state === 'installed' && navigator.serviceWorker.controller) {
+          mostrarAvisoAtualizacao();
+        }
+      });
+    });
+    // A checagem automatica do navegador so' acontece em certos momentos
+    // (ex.: recarregar a pagina) - como esta tela costuma ficar aberta o dia
+    // inteiro, confere de novo a cada 5 minutos.
+    setInterval(() => registro.update(), 5 * 60 * 1000);
+  }).catch(() => {
     /* instalabilidade e' so' um extra - se falhar, o app continua normal */
   });
 }
