@@ -2,7 +2,7 @@
   "name": "Auditoria de Integração — Ângulo Social",
   "short_name": "Auditoria",
   "description": "Controle de documentos de integração de colaboradores CLT e PJ — Ângulo Social",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#faf8f7",
