@@ -241,3 +241,12 @@ async function iniciar() {
 }
 
 document.addEventListener('DOMContentLoaded', iniciar);
+
+// Service worker minimo, so' para o navegador oferecer "Instalar app" (cria
+// um icone/atalho de verdade pra quem usa no dia a dia) - nao guarda nada
+// offline de proposito, os dados vem sempre do SharePoint.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {
+    /* instalabilidade e' so' um extra - se falhar, o app continua normal */
+  });
+}
