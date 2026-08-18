@@ -7,7 +7,13 @@ import * as dashboard from './telas/dashboard.js';
 import * as lista from './telas/lista.js';
 import * as detalhe from './telas/detalhe.js';
 import * as geradorPasta from './telas/gerador-pasta.js';
+import { RESPONSAVEIS_ADM } from './schema.js';
 import { el, limpar } from './ui.js';
+
+/** Nome da pessoa pelo e-mail (RESPONSAVEIS_ADM); mostra o próprio e-mail se não achar. */
+function nomeDoResponsavel(email) {
+  return RESPONSAVEIS_ADM.find((p) => p.email === email)?.nome || email;
+}
 
 const nos = {};
 let abaAtiva = 'Kanban';
@@ -128,7 +134,9 @@ function atualizarFiltroResponsavel() {
 
   limpar(nos.filtroResponsavel);
   nos.filtroResponsavel.append(el('option', { value: '', texto: 'Todos' }));
-  for (const r of opcoes) nos.filtroResponsavel.append(el('option', { value: r, texto: r }));
+  // Mostra o nome (RESPONSAVEIS_ADM) - o valor que de fato filtra continua sendo
+  // o e-mail, que é o que a planilha guarda e pra onde o alerta é enviado.
+  for (const r of opcoes) nos.filtroResponsavel.append(el('option', { value: r, texto: nomeDoResponsavel(r) }));
   nos.filtroResponsavel.value = opcoes.includes(atual) ? atual : '';
 }
 

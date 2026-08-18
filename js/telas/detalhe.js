@@ -50,7 +50,22 @@ export function abrir(reg) {
   nos.corpo.scrollTop = 0;
 }
 
-export function fechar() {
+/** Compara rascunho com o original - true se algum campo editável mudou e não foi salvo. */
+function houveMudancaNaoSalva() {
+  if (!original || !rascunho) return false;
+  const chaves = new Set([...Object.keys(original), ...Object.keys(rascunho)]);
+  for (const c of chaves) {
+    if (c.startsWith('__')) continue; // campos internos (ex.: __linha), nao sao dado editado
+    if (String(original[c] ?? '') !== String(rascunho[c] ?? '')) return true;
+  }
+  return false;
+}
+
+export function fechar({ forcar = false } = {}) {
+  if (!forcar && houveMudancaNaoSalva()) {
+    const sair = window.confirm('Você tem alterações não salvas nesta ficha. Sair sem salvar mesmo assim?');
+    if (!sair) return; // mantem a gaveta aberta
+  }
   nos.gaveta.hidden = true;
   nos.fundo.hidden = true;
   original = null;
@@ -379,7 +394,7 @@ async function excluir() {
   nos.aviso.textContent = 'Excluindo…';
   try {
     await excluirRegistro(original);
-    fechar();
+    fechar({ forcar: true }); // ja' foi excluido - nao faz sentido perguntar sobre "sair sem salvar"
   } catch (err) {
     nos.aviso.textContent = '';
     aoErro(err.message);
