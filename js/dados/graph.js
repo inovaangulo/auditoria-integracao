@@ -16,7 +16,12 @@ import { COLUNAS } from '../schema.js';
 const CDN_MSAL = 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js';
 const GRAFO = 'https://graph.microsoft.com/v1.0';
 
-const ABA_HISTORICO = 'Histórico';
+// Nome INTENCIONALMENTE nao e' so' "Historico": o Excel reserva esse nome
+// exato (equivalente ao "History" em ingles) para a antiga funcionalidade de
+// Controle de Alteracoes - toda tentativa de criar uma aba com esse nome
+// falha com um erro generico "argumento invalido" no Graph, sem nunca criar
+// a aba (bug descoberto em 18/08/2026 apos testar com uma pasta de teste).
+const ABA_HISTORICO = 'Histórico de Alterações';
 const CABECALHO_HISTORICO = ['Data/Hora', 'Usuário', 'Chave', 'Colaborador', 'Campo', 'Valor anterior', 'Valor novo'];
 
 /** Ultima coluna da tabela (48 colunas = AV). Derivada para nao desalinhar se COLUNAS mudar. */
@@ -195,7 +200,7 @@ export class FonteSharePoint {
   }
 
   // -------------------------------------------------------------------------
-  // Historico compartilhado (aba "Histórico" na mesma planilha)
+  // Historico compartilhado (aba "Histórico de Alterações" na mesma planilha)
   // -------------------------------------------------------------------------
   // Guardado como uma linha por campo alterado (varias linhas podem
   // compartilhar o mesmo Data/Hora + Usuario quando vem do mesmo salvamento).

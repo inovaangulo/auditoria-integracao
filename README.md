@@ -33,7 +33,7 @@ O app decide o modo pelo `clientId` em `js/config.js`.
 | Onde ficam os dados | Só no navegador de quem abriu | Na planilha do SharePoint |
 | Entrada de dados | Botão "Importar planilha" | Login com a conta @angulosocial.com |
 | Vários usuários ao mesmo tempo | **Não** | Sim |
-| Histórico de alterações | Por navegador | **Compartilhado** — aba "Histórico" na própria planilha |
+| Histórico de alterações | Por navegador | **Compartilhado** — aba "Histórico de Alterações" na própria planilha |
 
 O modo local serve para **validar a tela antes de mexer no Azure**. Ele repete a
 limitação do Excel compartilhado de hoje — por isso o app exibe uma faixa de aviso
