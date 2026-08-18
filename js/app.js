@@ -296,3 +296,22 @@ if ('serviceWorker' in navigator) {
     /* instalabilidade e' so' um extra - se falhar, o app continua normal */
   });
 }
+
+// version.json e' o sinal principal de "tem versao nova": o service worker so'
+// detecta troca no PROPRIO arquivo sw.js, entao nao pega mudanca em outro
+// lugar do app. version.json e' atualizado a cada publicacao (mesmo commit da
+// mudanca em si) - se o valor mudar, e' porque saiu uma versao nova.
+(function conferirVersao() {
+  let versaoInicial = null;
+  async function checar() {
+    try {
+      const { v } = await fetch('version.json', { cache: 'no-store' }).then((r) => r.json());
+      if (versaoInicial === null) { versaoInicial = v; return; }
+      if (v !== versaoInicial) mostrarAvisoAtualizacao();
+    } catch {
+      /* checagem de versao e' so' um extra - falha aqui nao pode afetar o app */
+    }
+  }
+  checar();
+  setInterval(checar, 5 * 60 * 1000);
+})();
