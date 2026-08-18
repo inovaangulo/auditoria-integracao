@@ -67,6 +67,7 @@ export const COLUNAS = [
 export const RESPONSAVEIS_ADM = [
   { nome: 'Miriã Antunes', email: 'miria.antunes@angulosocial.com' },
   { nome: 'Ludmylla Antunes', email: 'ludmylla.antunes@angulosocial.com' },
+  { nome: 'Sara Cantão', email: 'sara.cantao@angulosocial.com' }, // temporário, só para teste (18/08/2026) - remover depois
 ];
 
 /** Colunas derivadas por regra de negocio - o app recalcula e sobrescreve ao salvar. */
