@@ -6,11 +6,11 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="96" fill="url(#g)"/>
-  <g transform="translate(109,109) scale(14)">
+  <g transform="translate(56,56) scale(19)">
     <path fill="#ffffff" d="M16.83,16.38c0,.66-.24,1.24-.7,1.7-.48.46-1.04.7-1.7.7h-7.84c-.66,0-1.24-.24-1.7-.7s-.72-1.04-.72-1.7V5.34c0-.66.24-1.22.72-1.7s1.04-.7,1.7-.7h5.64v3.7c0,.5.4.88.88.88h3.72v8.86ZM13.79,10.38c.18,0,.26-.08.26-.26v-.42c0-.18-.08-.28-.26-.28h-6.58c-.18,0-.26.1-.26.28v.42c0,.18.08.26.26.26h6.58ZM13.79,13.28c.18,0,.26-.08.26-.26v-.42c0-.18-.08-.26-.26-.26h-6.58c-.18,0-.26.08-.26.26v.42c0,.18.08.26.26.26h6.58ZM13.79,16.22c.18,0,.26-.08.26-.26v-.42c0-.18-.08-.26-.26-.26h-6.58c-.18,0-.26.08-.26.26v.42c0,.18.08.26.26.26h6.58ZM16.65,6.66h-3.56v-3.54l3.56,3.54Z"/>
   </g>
-  <g>
-    <circle cx="372" cy="372" r="66" fill="#2e7d5b"/>
-    <path d="M344 372 l20 20 40 -44" fill="none" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(414,414) scale(1.21)">
+    <circle cx="0" cy="0" r="66" fill="#2e7d5b"/>
+    <path d="M-28,0 l20,20 l40,-44" fill="none" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 </svg>
