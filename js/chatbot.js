@@ -1,11 +1,18 @@
 /**
- * Chatbot de duvidas sobre o app - so' busca por palavra-chave numa base de
- * perguntas/respostas fixa (FAQ), sem chamada nenhuma pra fora do navegador.
- * Nasce assim de proposito: o app e' um site estatico no GitHub Pages, sem
- * servidor proprio pra guardar uma chave de API com seguranca - qualquer
- * chave colocada aqui ficaria visivel pra qualquer pessoa que abrisse o
- * codigo-fonte. Por isso a base de respostas usa o Plano de Trabalho como
- * referencial: cobre exatamente o que ja' foi construido e documentado.
+ * Chatbot de duvidas sobre o app - sem chamada nenhuma pra fora do navegador
+ * (nao ha' servidor proprio pra guardar uma chave de API com seguranca, ja'
+ * que o app e' um site estatico no GitHub Pages).
+ *
+ * Duas camadas de resposta:
+ *  1. FAQ curada (abaixo) - respostas escritas a mao, pros topicos mais
+ *     comuns. Prioridade, porque ja' saem no tom certo.
+ *  2. Base derivada do proprio Plano de Trabalho (plano-trabalho.html,
+ *     buscado em tempo real) - cobre qualquer coisa ja' documentada, sem
+ *     precisar mapear pergunta por pergunta a mao (impraticavel a longo
+ *     prazo). O texto do plano e' escrito em tom de relatorio ("Já temos" /
+ *     "Falta" / "Como fazer"), por isso passa por `formatarCard`/`formatarFase`
+ *     antes de virar resposta - o documento e' so' a base, nao o que aparece
+ *     literalmente na tela.
  */
 
 import { el } from './ui.js';
@@ -32,7 +39,11 @@ const FAQ = [
     resposta: 'O checklist muda de acordo com o vínculo: CLT pede 10 documentos, PJ pede 15 — o app troca a lista automaticamente conforme o campo "Tipo" da ficha.',
   },
   {
-    chaves: ['alerta', 'cor do alerta', 'vermelho', 'ambar', 'amarelo', 'cinza', 'revisar', 'o que significa a cor'],
+    chaves: ['resolver alerta', 'resolvo o alerta', 'resolver o alerta', 'tirar o alerta', 'sumir o alerta', 'fechar alerta', 'dispensar alerta', 'como faco o alerta sumir'],
+    resposta: 'Depende do tipo: o alerta cinza ("revisar") tem ação manual — abra a ficha, confira se o documento é da pessoa certa, apague o texto do campo "Alerta verificação de conteúdo" e salve. Já os alertas vermelho/âmbar (prazo) não têm botão de resolver — eles são calculados automaticamente e desaparecem sozinhos quando a causa muda: complete os documentos faltantes, avance o status do colaborador (ex.: "Aprovado"), ou atualize a data que gera o cálculo.',
+  },
+  {
+    chaves: ['alerta', 'cor do alerta', 'cores dos alertas', 'cores do alerta', 'vermelho', 'ambar', 'amarelo', 'cinza', 'revisar', 'o que significa a cor'],
     resposta: 'As cores dos alertas têm significados diferentes: vermelho = crítico (prazo estourado ou parado há muito tempo), âmbar = atenção (prazo se aproximando), cinza ("revisar") = a conferência automática não encontrou o nome do colaborador dentro de um documento — vale abrir e confirmar se é o arquivo certo.',
   },
   {
@@ -58,6 +69,10 @@ const FAQ = [
   {
     chaves: ['sincronizacao', 'sincronizar', 'cadastro automatico', 'pasta cria cadastro', 'como funciona a automacao'],
     resposta: 'A cada 3 horas (em horário comercial), uma rotina automática olha as pastas dentro de DOCUMENTOS_INTEGRACAO no SharePoint: pasta nova vira colaborador novo na planilha, e cada documento reconhecido dentro da pasta marca o campo correspondente como "Recebido" — sem ninguém precisar mexer no app.',
+  },
+  {
+    chaves: ['adicionar colaborador', 'novo colaborador', 'cadastrar colaborador', 'incluir colaborador', 'criar colaborador', 'como cadastro'],
+    resposta: 'Não existe um botão de "novo colaborador" dentro do app — o cadastro nasce da pasta no SharePoint. Crie a pasta do colaborador em DOCUMENTOS_INTEGRACAO no formato CPF (ou CNPJ)_Nome_completo (use o botão "Gerar nome de pasta" pra acertar o formato) e suba os documentos dentro dela. Em até 3 horas a rotina automática cria a linha na planilha e ele aparece no Kanban, na coluna "Pendente".',
   },
   {
     chaves: ['nome da pasta', 'como nomear pasta', 'padrao de pasta', 'criar pasta colaborador'],
@@ -95,6 +110,13 @@ const FAQ = [
 
 const RESPOSTA_PADRAO = 'Não encontrei essa pergunta na minha base — tenta reformular com outras palavras, ou fala direto com a Sara Cantão. Algumas coisas que sei explicar: login, Kanban, salvar a ficha, cores dos alertas, filtro por responsável, exportar/importar planilha, como nomear pasta e arquivo, gerador de nome de pasta, e-mail de alerta, instalar o app e aviso de nova versão.';
 
+const STOPWORDS = new Set([
+  'a', 'o', 'as', 'os', 'de', 'da', 'do', 'das', 'dos', 'e', 'é', 'ou', 'um', 'uma', 'uns', 'umas',
+  'no', 'na', 'nos', 'nas', 'ao', 'aos', 'com', 'por', 'pra', 'para', 'que', 'se', 'sem', 'sua', 'seu',
+  'suas', 'seus', 'como', 'app', 'isso', 'esse', 'essa', 'isto', 'aquele', 'aquela', 'tem', 'ter', 'fazer',
+  'faz', 'sobre', 'entao', 'ja', 'mais', 'muito', 'bem', 'eu', 'voce', 'ele', 'ela', 'nao', 'sim', 'ai', 'la',
+]);
+
 function normalizar(s) {
   return String(s || '')
     .toLowerCase()
@@ -103,23 +125,155 @@ function normalizar(s) {
     .replace(/[^a-z0-9\s]/g, ' ');
 }
 
-function responderPergunta(pergunta) {
+function tokens(s) {
+  return normalizar(s).split(/\s+/).filter((t) => t.length > 2 && !STOPWORDS.has(t));
+}
+
+function textoDe(elemento) {
+  return (elemento?.textContent || '').replace(/\s+/g, ' ').trim();
+}
+
+/** Column "Falta"/"Como fazer" costumam trazer texto de puro preenchimento - sem valor numa resposta de chat. */
+function semValor(texto) {
+  const norm = normalizar(texto);
+  return !texto || norm.startsWith('nada bloqueante') || norm === 'ja configurado' || norm.length < 4;
+}
+
+/** Reescreve um ".card" (grid3: Já temos / Falta / Como fazer) num paragrafo corrido, sem os rotulos de relatorio. */
+function formatarCard(card) {
+  const titulo = textoDe(card.querySelector('h3'));
+  const colunas = [...card.querySelectorAll('.grid3 .col')];
+  if (!titulo || !colunas.length) return null;
+
+  const jaTemos = textoDe(colunas[0]?.querySelector('p'));
+  const falta = textoDe(colunas[1]?.querySelector('p'));
+  const comoFazer = textoDe(colunas[2]?.querySelector('p'));
+
+  const partes = [`Sobre "${titulo}": ${jaTemos}`];
+  if (!semValor(comoFazer)) partes.push(`Na prática: ${comoFazer}`);
+  if (!semValor(falta)) partes.push(`Vale saber: ${falta}`);
+  return { titulo, texto: partes.join(' ') };
+}
+
+/** Cards mais simples da seção de limitações (só h3 + um parágrafo). */
+function formatarCardSimples(card) {
+  const titulo = textoDe(card.querySelector('h3'));
+  const paragrafo = textoDe(card.querySelector('p'));
+  if (!titulo || !paragrafo) return null;
+  return { titulo, texto: paragrafo };
+}
+
+/** Reescreve uma ".phase" do roadmap num paragrafo corrido. */
+function formatarFase(fase) {
+  const titulo = textoDe(fase.querySelector('h3'));
+  const itens = [...fase.querySelectorAll('.ph-body li')].map(textoDe).filter(Boolean);
+  if (!titulo || !itens.length) return null;
+  return { titulo, texto: `A etapa "${titulo}" já foi concluída. ${itens.join(' ')}` };
+}
+
+/** Blocos "Automático" / "Continua manual" - já são uma lista curta, só junta com virgulas. */
+function formatarFerramenta(bloco) {
+  const titulo = textoDe(bloco.querySelector('h3'));
+  const itens = [...bloco.querySelectorAll('.pc div')].map(textoDe).filter(Boolean);
+  if (!titulo || !itens.length) return null;
+  return { titulo, texto: `${titulo.replace(/^[^\wÀ-ÿ]+/, '')}: ${itens.join('; ')}.` };
+}
+
+/** Linhas do "Como usar" / "Próximos passos" - já são frases prontas, só remove o número/ícone do marcador. */
+function formatarLinha(linha) {
+  const paragrafo = linha.querySelector('p');
+  if (!paragrafo) return null;
+  const titulo = textoDe(paragrafo.querySelector('b')) || textoDe(paragrafo).split(' ').slice(0, 6).join(' ');
+  const texto = textoDe(paragrafo);
+  if (!texto) return null;
+  return { titulo, texto };
+}
+
+let baseDoPlanoPromise = null;
+
+/** Busca o proprio plano-trabalho.html (mesma origem) e monta os pedaços de conhecimento a partir dele. */
+async function carregarBaseDoPlano() {
+  if (baseDoPlanoPromise) return baseDoPlanoPromise;
+  baseDoPlanoPromise = (async () => {
+    try {
+      const resp = await fetch('plano-trabalho.html', { cache: 'no-store' });
+      const html = await resp.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const chunks = [];
+
+      for (const card of doc.querySelectorAll('.card')) {
+        const pedaco = card.querySelector('.grid3') ? formatarCard(card) : formatarCardSimples(card);
+        if (pedaco) chunks.push(pedaco);
+      }
+      for (const fase of doc.querySelectorAll('.phase')) {
+        const pedaco = formatarFase(fase);
+        if (pedaco) chunks.push(pedaco);
+      }
+      for (const bloco of doc.querySelectorAll('.tool')) {
+        const pedaco = formatarFerramenta(bloco);
+        if (pedaco) chunks.push(pedaco);
+      }
+      for (const linha of doc.querySelectorAll('.next .row')) {
+        const pedaco = formatarLinha(linha);
+        // A linha do proprio chatbot lista varios topicos numa frase so' -
+        // vira ima' de falso-positivo pra perguntas sobre qualquer um deles.
+        if (pedaco && !pedaco.texto.includes('Chatbot de dúvidas sobre o app')) chunks.push(pedaco);
+      }
+
+      return chunks.map((c) => ({ ...c, chaves: tokens(`${c.titulo} ${c.texto}`) }));
+    } catch {
+      return [];
+    }
+  })();
+  return baseDoPlanoPromise;
+}
+
+function pontuarPorTokens(perguntaTokens, chaves) {
+  const chavesUnicas = new Set(chaves);
+  let pontos = 0;
+  for (const t of new Set(perguntaTokens)) {
+    if (chavesUnicas.has(t)) pontos++;
+  }
+  return pontos;
+}
+
+async function responderPergunta(pergunta) {
   const texto = normalizar(pergunta);
   if (!texto.trim()) return RESPOSTA_PADRAO;
 
-  let melhor = null;
-  let melhorPontos = 0;
+  let melhorFaq = null;
+  let pontosFaq = 0;
   for (const item of FAQ) {
     let pontos = 0;
     for (const chave of item.chaves) {
       if (texto.includes(normalizar(chave))) pontos += chave.split(' ').length;
     }
-    if (pontos > melhorPontos) {
-      melhorPontos = pontos;
-      melhor = item;
+    if (pontos > pontosFaq) {
+      pontosFaq = pontos;
+      melhorFaq = item;
     }
   }
-  return melhor ? melhor.resposta : RESPOSTA_PADRAO;
+  if (pontosFaq >= 2) return melhorFaq.resposta;
+
+  const base = await carregarBaseDoPlano();
+  const perguntaTokens = tokens(pergunta);
+  const minimoNecessario = Math.max(2, Math.ceil(new Set(perguntaTokens).size * 0.5));
+  let melhorChunk = null;
+  let pontosChunk = 0;
+  for (const chunk of base) {
+    const pontos = pontuarPorTokens(perguntaTokens, chunk.chaves);
+    if (pontos > pontosChunk) {
+      pontosChunk = pontos;
+      melhorChunk = chunk;
+    }
+  }
+
+  // Exige pelo menos 2 palavras em comum E metade das palavras da pergunta -
+  // um único termo genérico batendo por acaso (ex.: "tempo") não deve gerar
+  // uma resposta inteira sobre outro assunto.
+  if (pontosChunk >= minimoNecessario) return melhorChunk.texto;
+  if (pontosFaq >= 1) return melhorFaq.resposta;
+  return RESPOSTA_PADRAO;
 }
 
 function mensagem(texto, autor) {
@@ -138,13 +292,15 @@ function montarPainel() {
     el('button', { class: 'btn-primario', type: 'submit', texto: 'Enviar' }),
   ]);
 
-  form.addEventListener('submit', (ev) => {
+  form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const pergunta = input.value.trim();
     if (!pergunta) return;
     corpo.append(mensagem(pergunta, 'usuario'));
-    corpo.append(mensagem(responderPergunta(pergunta), 'bot'));
     input.value = '';
+    corpo.scrollTop = corpo.scrollHeight;
+    const resposta = await responderPergunta(pergunta);
+    corpo.append(mensagem(resposta, 'bot'));
     corpo.scrollTop = corpo.scrollHeight;
   });
 
@@ -163,6 +319,7 @@ export function iniciar() {
   const painel = montarPainel();
 
   document.body.append(botao, painel);
+  carregarBaseDoPlano(); // prepara em segundo plano, pra' primeira pergunta nao esperar o fetch
 
   botao.addEventListener('click', () => {
     painel.hidden = !painel.hidden;
