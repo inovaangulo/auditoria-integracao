@@ -8,7 +8,7 @@
 
 import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS, RESPONSAVEIS_ADM } from '../schema.js';
 import { recalcular, alertas, paraInputDate } from '../regras.js';
-import { salvarRegistro, excluirRegistro, historicoDe, dataEntradaDe } from '../dados/index.js';
+import { salvarRegistro, excluirRegistro, historicoDe, dataEntradaDe, estado } from '../dados/index.js';
 import { el, limpar, documentoDe, confirmarConflito } from '../ui.js';
 
 const nos = {};
@@ -42,8 +42,11 @@ export function configurar({ erro }) {
 export function abrir(reg) {
   original = reg;
   rascunho = { ...reg };
-  nos.aviso.textContent = '';
-  nos.btnSalvar.disabled = false;
+  nos.aviso.textContent = estado.atualizacaoPendente
+    ? 'Há uma atualização pendente — recarregue a página antes de editar.'
+    : '';
+  nos.btnSalvar.disabled = estado.atualizacaoPendente;
+  nos.btnExcluir.disabled = estado.atualizacaoPendente;
   nos.gaveta.hidden = false;
   nos.fundo.hidden = false;
   desenhar();

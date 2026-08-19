@@ -275,7 +275,7 @@ export function alertas(reg) {
     // Sara pediu para essas cores nao se misturarem.
     lista.push({
       nivel: 'revisar',
-      texto: `Conferir documento(s) — nome não encontrado no conteúdo: ${r['Alerta verificação de conteúdo']}`,
+      texto: `Conferir documento(s) manualmente: ${r['Alerta verificação de conteúdo']}`,
     });
   }
   if (r['Alerta cobrança assinatura']) {

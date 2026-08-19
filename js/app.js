@@ -48,15 +48,21 @@ function mostrarErro(mensagem) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/** Faixa fixa "nova versão disponível" - não some sozinha, só ao clicar em Atualizar. */
+/**
+ * Faixa fixa "nova versão disponível" - não some sozinha, só ao clicar em
+ * Atualizar. Também bloqueia gravação/exclusão (dados.bloquearPorAtualizacao)
+ * até a página ser recarregada - pedido da Sara: ninguém deve continuar
+ * editando com uma versão desatualizada enquanto não recarrega.
+ */
 function mostrarAvisoAtualizacao() {
+  dados.bloquearPorAtualizacao();
   limpar(nos.faixaAviso);
   nos.faixaAviso.hidden = false;
   nos.faixaAviso.style.borderLeftColor = '#2e7d5b';
   nos.faixaAviso.style.background = '#e7f4ee';
   nos.faixaAviso.style.color = '#1e5a3f';
   nos.faixaAviso.append(el('div', { style: 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;' }, [
-    '🔄 Uma versão mais nova do app está disponível.',
+    '🔄 Uma versão mais nova do app está disponível — edição bloqueada até recarregar.',
     el('button', {
       class: 'btn-topo',
       style: 'background:#2e7d5b;',

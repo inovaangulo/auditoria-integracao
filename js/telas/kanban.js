@@ -1,7 +1,7 @@
 /** Quadro Kanban: uma coluna por etapa, um cartao por colaborador. */
 
 import { COLUNAS_KANBAN } from '../schema.js';
-import { porColuna, alertas, documentosFaltantes, mudarStatus, chave } from '../dados/index.js';
+import { porColuna, alertas, documentosFaltantes, mudarStatus, chave, estado } from '../dados/index.js';
 import { el, limpar, documentoDe, plural, confirmarConflito } from '../ui.js';
 
 let aoAbrirDetalhe = () => {};
@@ -39,7 +39,9 @@ function montarCartao(reg) {
 
   const cartao = el('article', {
     class: `cartao${listaAlertas.length ? ' tem-alerta' : ''}`,
-    draggable: 'true',
+    // Trava enquanto ha' atualizacao pendente (dados.bloquearPorAtualizacao) -
+    // ninguem deve mudar status com uma versao desatualizada rodando.
+    draggable: estado.atualizacaoPendente ? 'false' : 'true',
     tabindex: '0',
     role: 'button',
     'aria-label': `Abrir ficha de ${reg['Nome completo']}`,

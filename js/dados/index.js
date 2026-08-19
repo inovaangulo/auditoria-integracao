@@ -23,12 +23,26 @@ export const estado = {
   registros: [],
   filtros: { busca: '', cliente: '', responsavel: '', tipo: '', alerta: '' },
   datasEntrada: new Map(), // chave -> data de entrada (Map: le' rapido, chave ja normalizada)
+  atualizacaoPendente: false, // true quando ha' versao nova - bloqueia gravacao, ver bloquearPorAtualizacao()
 };
 
 const ouvintes = new Set();
 
 export function aoMudar(fn) { ouvintes.add(fn); return () => ouvintes.delete(fn); }
 function notificar() { ouvintes.forEach((fn) => fn()); }
+
+/**
+ * Chamado quando o app detecta uma versao nova publicada (app.js). Bloqueia
+ * qualquer gravacao/exclusao daqui pra frente - a Sara pediu isso pra
+ * garantir que ninguem edite com uma versao desatualizada enquanto uma
+ * atualizacao (que pode incluir regra de negocio nova) ainda nao foi
+ * recarregada. So' um recarregamento da pagina desfaz isso.
+ */
+export function bloquearPorAtualizacao() {
+  if (estado.atualizacaoPendente) return;
+  estado.atualizacaoPendente = true;
+  notificar();
+}
 
 // ---------------------------------------------------------------------------
 // Ciclo de vida
@@ -95,6 +109,10 @@ export function dataEntradaDe(reg) {
  * confirma a sobrescrita com `{ forcar: true }`.
  */
 export async function salvarRegistro(editado, original, { forcar = false } = {}) {
+  if (estado.atualizacaoPendente) {
+    throw new Error('Há uma atualização do app pendente — recarregue a página antes de continuar editando.');
+  }
+
   if (!forcar && original && estado.fonte.lerRegistroAtual) {
     let atual = null;
     try { atual = await estado.fonte.lerRegistroAtual(original); }
@@ -143,6 +161,9 @@ export async function mudarStatus(reg, novoStatus, opcoes) {
  * perder o rastro de quem excluiu e quando.
  */
 export async function excluirRegistro(reg) {
+  if (estado.atualizacaoPendente) {
+    throw new Error('Há uma atualização do app pendente — recarregue a página antes de excluir.');
+  }
   const k = chave(reg);
   const quando = new Date().toISOString();
   const quem = estado.usuario || 'usuário local';
