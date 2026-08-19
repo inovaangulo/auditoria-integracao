@@ -620,6 +620,19 @@ table.lista tbody tr:hover { background: var(--vermelho-suave); }
 .chatbot-msg.bot { background: var(--cinza-suave); color: var(--tinta); align-self: flex-start; }
 .chatbot-msg.usuario { background: var(--vermelho); color: #fff; align-self: flex-end; }
 
+.chatbot-sugestoes { display: flex; flex-wrap: wrap; gap: 6px; }
+.chatbot-chip {
+  background: var(--papel);
+  color: var(--vermelho-escuro);
+  border: 1px solid var(--vermelho-suave);
+  border-radius: 14px;
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: left;
+}
+.chatbot-chip:hover { background: var(--vermelho-suave); }
+
 .chatbot-form {
   display: flex;
   gap: 8px;

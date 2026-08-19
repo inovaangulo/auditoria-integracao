@@ -212,7 +212,7 @@ export class FonteSharePoint {
     return `${GRAFO}/drives/${driveId}/items/${itemId}/workbook/worksheets('${encodeURIComponent(ABA_HISTORICO)}')`;
   }
 
-  /** Cria a aba de historico se ainda nao existir. So' confere uma vez por sessao. */
+  /** Cria a aba de historico se ainda nao existir e garante o cabecalho estilizado. So' confere uma vez por sessao. */
   async garantirAbaHistorico() {
     if (this._historicoOk) return;
     const { driveId, itemId } = CONFIG.planilha;
@@ -228,6 +228,16 @@ export class FonteSharePoint {
         body: JSON.stringify({ values: [CABECALHO_HISTORICO] }),
       });
     }
+    // Cor da aba em si nao e' possivel via Graph (so' name/position/visibility) -
+    // estiliza o cabecalho como alternativa. Reaplicar em toda sessao e' inofensivo.
+    await this.chamar(`${this.baseHistorico}/range(address='A1:G1')/format/fill`, {
+      method: 'PATCH',
+      body: JSON.stringify({ color: '#C1272D' }),
+    });
+    await this.chamar(`${this.baseHistorico}/range(address='A1:G1')/format/font`, {
+      method: 'PATCH',
+      body: JSON.stringify({ bold: true, color: '#FFFFFF' }),
+    });
     this._historicoOk = true;
   }
 

@@ -8,7 +8,11 @@
 
 import { COLUNAS } from '../schema.js';
 
-const CDN_SHEETJS = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+// xlsx-js-style: fork da SheetJS Community Edition que preserva estilo de
+// celula (cor de fundo, negrito) ao escrever o .xlsx - a SheetJS gratuita
+// descarta estilo na escrita (recurso pago na versao Pro). Mesma API, so'
+// troca a URL - ler planilha continua funcionando igual.
+const CDN_SHEETJS = 'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';
 
 let promessaSheetJs = null;
 
@@ -89,10 +93,20 @@ export async function lerArquivo(arquivo, nomeAba) {
  * Gera o .xlsx de volta. Se recebeu a pasta original na importacao, reescreve
  * apenas a aba de cadastro e preserva Instruções, CLT, PJ e Parâmetros.
  */
+const ESTILO_CABECALHO = {
+  fill: { fgColor: { rgb: 'C1272D' } },
+  font: { bold: true, color: { rgb: 'FFFFFF' } },
+};
+
 export async function gerarArquivo(registros, nomeAba, pastaOriginal) {
   const XLSX = await carregarSheetJs();
   const matriz = [COLUNAS, ...registros.map(registroParaLinha)];
   const aba = XLSX.utils.aoa_to_sheet(matriz);
+
+  COLUNAS.forEach((_, i) => {
+    const ref = XLSX.utils.encode_cell({ r: 0, c: i });
+    if (aba[ref]) aba[ref].s = ESTILO_CABECALHO;
+  });
 
   const pasta = pastaOriginal || XLSX.utils.book_new();
   if (pastaOriginal) {

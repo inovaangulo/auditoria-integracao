@@ -125,8 +125,13 @@ function normalizar(s) {
     .replace(/[^a-z0-9\s]/g, ' ');
 }
 
+/** Singular ingenuo (so' pra bater "alertas" com "alerta", "documentos" com "documento" etc). */
+function singularizar(t) {
+  return t.length > 4 && t.endsWith('s') ? t.slice(0, -1) : t;
+}
+
 function tokens(s) {
-  return normalizar(s).split(/\s+/).filter((t) => t.length > 2 && !STOPWORDS.has(t));
+  return normalizar(s).split(/\s+/).map(singularizar).filter((t) => t.length > 2 && !STOPWORDS.has(t));
 }
 
 function textoDe(elemento) {
@@ -238,16 +243,19 @@ function pontuarPorTokens(perguntaTokens, chaves) {
 }
 
 async function responderPergunta(pergunta) {
-  const texto = normalizar(pergunta);
-  if (!texto.trim()) return RESPOSTA_PADRAO;
+  if (!normalizar(pergunta).trim()) return RESPOSTA_PADRAO;
 
+  const perguntaTokens = tokens(pergunta);
+
+  // Comparacao por palavras em comum (nao por trecho exato) - assim "alertas"
+  // bate com "alerta", "resolvo os alertas" bate com "resolver alerta" etc.,
+  // sem precisar prever cada variacao de plural/singular na hora de escrever
+  // as chaves de cada pergunta.
   let melhorFaq = null;
   let pontosFaq = 0;
   for (const item of FAQ) {
-    let pontos = 0;
-    for (const chave of item.chaves) {
-      if (texto.includes(normalizar(chave))) pontos += chave.split(' ').length;
-    }
+    const chaveTokens = tokens(item.chaves.join(' '));
+    const pontos = pontuarPorTokens(perguntaTokens, chaveTokens);
     if (pontos > pontosFaq) {
       pontosFaq = pontos;
       melhorFaq = item;
@@ -256,7 +264,6 @@ async function responderPergunta(pergunta) {
   if (pontosFaq >= 2) return melhorFaq.resposta;
 
   const base = await carregarBaseDoPlano();
-  const perguntaTokens = tokens(pergunta);
   const minimoNecessario = Math.max(2, Math.ceil(new Set(perguntaTokens).size * 0.5));
   let melhorChunk = null;
   let pontosChunk = 0;
@@ -280,28 +287,44 @@ function mensagem(texto, autor) {
   return el('div', { class: `chatbot-msg ${autor}` }, [texto]);
 }
 
+/** Perguntas prontas pra clicar, sem precisar digitar - cobrem os casos mais comuns. */
+const SUGESTOES = [
+  'Como funciona o Kanban?',
+  'Como resolvo os alertas?',
+  'Erro ao entrar (login)',
+  'Como nomear a pasta e o arquivo?',
+  'Como recebo alertas por e-mail?',
+  'Como instalar o app?',
+];
+
 function montarPainel() {
   const corpo = el('div', { class: 'chatbot-corpo', id: 'chatbotCorpo' }, [
-    mensagem('Oi! Posso ajudar com dúvidas sobre como usar o app de Auditoria de Integração — login, Kanban, salvar, alertas, filtros, exportar planilha, nomear pasta/arquivo, e-mail de alerta, instalar o app... Pode perguntar.', 'bot'),
+    mensagem('Oi! Posso ajudar com dúvidas sobre como usar o app de Auditoria de Integração — login, Kanban, salvar, alertas, filtros, exportar planilha, nomear pasta/arquivo, e-mail de alerta, instalar o app... Pode perguntar, ou clicar numa das sugestões abaixo.', 'bot'),
+    el('div', { class: 'chatbot-sugestoes' }, SUGESTOES.map((s) =>
+      el('button', { class: 'chatbot-chip', type: 'button', texto: s, onclick: () => enviarPergunta(s) })
+    )),
   ]);
 
   const input = el('input', { type: 'text', id: 'chatbotInput', placeholder: 'Digite sua dúvida…' });
 
-  const form = el('form', { class: 'chatbot-form', id: 'chatbotForm' }, [
-    input,
-    el('button', { class: 'btn-primario', type: 'submit', texto: 'Enviar' }),
-  ]);
-
-  form.addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const pergunta = input.value.trim();
-    if (!pergunta) return;
+  async function enviarPergunta(pergunta) {
+    if (!pergunta.trim()) return;
     corpo.append(mensagem(pergunta, 'usuario'));
     input.value = '';
     corpo.scrollTop = corpo.scrollHeight;
     const resposta = await responderPergunta(pergunta);
     corpo.append(mensagem(resposta, 'bot'));
     corpo.scrollTop = corpo.scrollHeight;
+  }
+
+  const form = el('form', { class: 'chatbot-form', id: 'chatbotForm' }, [
+    input,
+    el('button', { class: 'btn-primario', type: 'submit', texto: 'Enviar' }),
+  ]);
+
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    enviarPergunta(input.value.trim());
   });
 
   return el('div', { class: 'painel-chatbot', id: 'painelChatbot', hidden: true, role: 'dialog', 'aria-label': 'Dúvidas sobre o app' }, [
