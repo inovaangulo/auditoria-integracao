@@ -2,7 +2,7 @@
 
 import { COLUNAS_KANBAN } from '../schema.js';
 import { porColuna, alertas, documentosFaltantes, mudarStatus, chave } from '../dados/index.js';
-import { el, limpar, documentoDe, plural } from '../ui.js';
+import { el, limpar, documentoDe, plural, confirmarConflito } from '../ui.js';
 
 let aoAbrirDetalhe = () => {};
 let aoErro = () => {};
@@ -103,6 +103,15 @@ function montarColuna(def, registros) {
     try {
       await mudarStatus(reg, def.statusPadrao);
     } catch (err) {
+      if (confirmarConflito(err)) {
+        try {
+          await mudarStatus(reg, def.statusPadrao, { forcar: true });
+          return;
+        } catch (err2) {
+          aoErro(err2.message);
+          return;
+        }
+      }
       aoErro(err.message);
     }
   });

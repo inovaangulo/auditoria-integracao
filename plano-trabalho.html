@@ -538,9 +538,9 @@
 
 
     <div class="card parcial">
-      <div class="top"><span class="idx">!</span><h3>Sem edição simultânea da mesma linha</h3>
-      <span class="badge b-parcial"><span class="dot"></span> Baixo risco hoje</span></div>
-      <p style="margin:0 0 4px;font-size:14px;color:#33383f;">Se duas pessoas abrirem a ficha do mesmo colaborador ao mesmo tempo, quem salvar por último sobrescreve a outra edição. Com a equipe atual (só Sara e a coordenadora), isso é improvável — mas cresce se mais pessoas passarem a editar.</p>
+      <div class="top"><span class="idx">✓</span><h3>Edição simultânea da mesma linha</h3>
+      <span class="badge b-feito"><span class="dot"></span> Corrigido em 18/08/2026, antes de abrir pro time ADM</span></div>
+      <p style="margin:0 0 4px;font-size:14px;color:#33383f;"><s>Se duas pessoas abrirem a ficha do mesmo colaborador ao mesmo tempo, quem salvar por último sobrescreve a outra edição.</s> Corrigido: antes de gravar, o app confere se algum campo real (não os calculados, como "dias aguardando") mudou na planilha desde que a ficha foi aberta. Se mudou, avisa quais campos e pergunta se quer sobrescrever mesmo assim — em vez de perder a edição de quem salvou primeiro sem ninguém notar. Vale tanto pra ficha quanto pra arrastar cartão no Kanban. Testado com cenários simulados: sem conflito, com conflito real, com campo calculado (não deve alarmar) e com confirmação de sobrescrita.</p>
     </div>
 
     <div class="card parcial">

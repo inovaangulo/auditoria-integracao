@@ -9,7 +9,7 @@
 import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS, RESPONSAVEIS_ADM } from '../schema.js';
 import { recalcular, alertas, paraInputDate } from '../regras.js';
 import { salvarRegistro, excluirRegistro, historicoDe, dataEntradaDe } from '../dados/index.js';
-import { el, limpar, documentoDe } from '../ui.js';
+import { el, limpar, documentoDe, confirmarConflito } from '../ui.js';
 
 const nos = {};
 let original = null;   // registro como veio da fonte
@@ -352,6 +352,16 @@ function bloquearSalvamento(campo, mensagem) {
   window.alert(mensagem);
 }
 
+/** Se a gravacao recusar por edicao simultanea, pergunta se sobrescreve. */
+async function salvarComConfirmacaoDeConflito(rascunhoAtual, originalAtual) {
+  try {
+    return await salvarRegistro(rascunhoAtual, originalAtual);
+  } catch (err) {
+    if (!confirmarConflito(err)) throw err;
+    return salvarRegistro(rascunhoAtual, originalAtual, { forcar: true });
+  }
+}
+
 async function salvar() {
   if (!rascunho) return;
   if (!String(rascunho['Nome completo'] || '').trim()) {
@@ -367,7 +377,7 @@ async function salvar() {
   nos.btnSalvar.disabled = true;
   nos.aviso.textContent = 'Salvando…';
   try {
-    const salvo = await salvarRegistro(rascunho, original);
+    const salvo = await salvarComConfirmacaoDeConflito(rascunho, original);
     original = salvo;
     rascunho = { ...salvo };
     nos.aviso.textContent = 'Salvo';

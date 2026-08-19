@@ -568,7 +568,9 @@ table.lista tbody tr:hover { background: var(--vermelho-suave); }
   background: var(--vermelho);
   color: #fff;
   border: none;
-  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: var(--sombra-alta);
   z-index: 60;
 }

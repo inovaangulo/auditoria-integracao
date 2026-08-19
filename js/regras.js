@@ -173,6 +173,20 @@ export function contagemDocumentos(reg) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Colunas que recalcular() sobrescreve sempre, so' a partir de outros campos
+ * e da data de hoje - mudam sozinhas com o tempo, mesmo sem ninguem editar
+ * nada. Quem compara duas leituras pra detectar edicao simultanea (dados/
+ * index.js) precisa ignorar essas, senao qualquer salvamento seria acusado
+ * de "conflito" so' porque um dia passou entre as duas leituras.
+ */
+export const CAMPOS_DERIVADOS = [
+  'CPF (só números)', 'CNPJ (só números)', 'Documentos completos?',
+  'Dias aguardando assinatura', 'Alerta cobrança assinatura',
+  'Dias sem confirmação (PJ)', 'Alerta confirmação pendente (PJ)',
+  'Dias sem confirmação', 'Situação prazo Wehandle', 'Consistência do status',
+];
+
+/**
  * Devolve uma copia do registro com as colunas calculadas atualizadas.
  * Puro de proposito: a tela chama isso a cada edicao sem se preocupar com ordem.
  */

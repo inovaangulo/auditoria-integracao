@@ -9,8 +9,10 @@
 import { CONFIG, MODO_SHAREPOINT } from '../config.js';
 import { FonteLocal } from './local.js';
 import { FonteSharePoint } from './graph.js';
-import { recalcular, alertas, documentosFaltantes } from '../regras.js';
-import { colunaDoStatus } from '../schema.js';
+import { recalcular, alertas, documentosFaltantes, CAMPOS_DERIVADOS } from '../regras.js';
+import { colunaDoStatus, COLUNAS } from '../schema.js';
+
+const CAMPOS_COMPARAVEIS = COLUNAS.filter((c) => !CAMPOS_DERIVADOS.includes(c));
 
 const CHAVE_HISTORICO = 'auditoria_integracao::historico';
 
@@ -84,8 +86,33 @@ export function dataEntradaDe(reg) {
 /**
  * Grava um registro editado. `original` e' a versao anterior, usada para montar
  * o historico com o que de fato mudou.
+ *
+ * Antes de gravar, confere se alguem alterou essa linha desde que `original`
+ * foi lido (edicao simultanea) - so' nos campos da planilha (COLUNAS), nunca
+ * nos campos calculados (recalcular()), que mudam so' com o tempo e dariam
+ * falso alarme. Se achar diferenca, joga um erro com `.conflito` (lista dos
+ * campos) em vez de sobrescrever silenciosamente; quem chamou decide se
+ * confirma a sobrescrita com `{ forcar: true }`.
  */
-export async function salvarRegistro(editado, original) {
+export async function salvarRegistro(editado, original, { forcar = false } = {}) {
+  if (!forcar && original && estado.fonte.lerRegistroAtual) {
+    let atual = null;
+    try { atual = await estado.fonte.lerRegistroAtual(original); }
+    catch { atual = null; } // falha na conferencia nao pode travar o salvamento
+    if (atual) {
+      const divergentes = CAMPOS_COMPARAVEIS.filter((c) => String(atual[c] ?? '').trim() !== String(original[c] ?? '').trim());
+      if (divergentes.length) {
+        const erro = new Error(
+          `Este colaborador foi alterado por outra pessoa desde que você abriu esta ficha ` +
+          `(campo${divergentes.length > 1 ? 's' : ''}: ${divergentes.join(', ')}). ` +
+          `Salvar mesmo assim vai sobrescrever essa mudança.`
+        );
+        erro.conflito = divergentes;
+        throw erro;
+      }
+    }
+  }
+
   const atualizado = recalcular(editado);
 
   const i = estado.registros.findIndex((r) => chave(r) === chave(atualizado));
@@ -104,10 +131,10 @@ export async function salvarRegistro(editado, original) {
 }
 
 /** Muda so' o status - usado ao arrastar o cartao entre colunas do Kanban. */
-export async function mudarStatus(reg, novoStatus) {
+export async function mudarStatus(reg, novoStatus, opcoes) {
   if ((reg['Status atual'] || '') === novoStatus) return reg;
   const original = { ...reg };
-  return salvarRegistro({ ...reg, 'Status atual': novoStatus }, original);
+  return salvarRegistro({ ...reg, 'Status atual': novoStatus }, original, opcoes);
 }
 
 /**

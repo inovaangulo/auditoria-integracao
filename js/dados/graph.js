@@ -158,6 +158,23 @@ export class FonteSharePoint {
     return reg;
   }
 
+  /**
+   * Le a linha do colaborador direto do SharePoint, sem cache, pra' detectar
+   * se alguem alterou desde que a ficha foi aberta (edicao simultanea).
+   * Devolve null se a linha nao existe mais (excluida por outra pessoa).
+   */
+  async lerRegistroAtual(reg) {
+    const linha = reg.__linha;
+    if (!linha) return null;
+    const endereco = `A${linha}:${this.colunaFinal}${linha}`;
+    const dados = await this.chamar(`${this.base}/range(address='${endereco}')?$select=values`);
+    const valores = (dados.values || [])[0];
+    if (!valores) return null;
+    const atual = linhaParaRegistro(valores);
+    atual.__linha = linha;
+    return atual;
+  }
+
   async adicionar(reg) {
     const atuais = await this.chamar(`${this.base}/usedRange(valuesOnly=true)?$select=rowCount`);
     const linha = (atuais.rowCount || 1) + 1;

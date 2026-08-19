@@ -19,6 +19,10 @@ import { el } from './ui.js';
 
 const FAQ = [
   {
+    chaves: ['como usar', 'como uso o app', 'como usar o aplicativo', 'passo a passo', 'primeiro acesso', 'primeira vez', 'como comecar', 'tutorial'],
+    resposta: 'Passo a passo básico: 1) abra o link do app e entre com sua conta @angulosocial.com; 2) use os filtros (cliente, responsável, vínculo, situação) ou a busca pra achar quem procura; 3) no Kanban, arraste o cartão pra mudar o status; 4) clique num cartão pra abrir a ficha completa, com o checklist de documentos; 5) depois de editar, clique em "Salvar" antes de fechar; 6) use o Dashboard pra visão geral e a Lista pra buscar como numa planilha. Tudo direto no navegador, sem instalar nada (embora dê pra criar um atalho, se quiser).',
+  },
+  {
     chaves: ['login', 'entrar', 'entra', 'conta', 'senha', 'aadsts', 'redirect', 'nao consigo entrar', 'erro ao entrar'],
     resposta: 'Clique em "Entrar com conta Ângulo" e use seu e-mail @angulosocial.com — o mesmo que você já usa no SharePoint. Se aparecer um erro tipo "AADSTS50011" ou "redirect URI", geralmente é o atalho instalado (PWA) com uma versão antiga guardada — desinstale o atalho (menu ⋮ da janela do app → "Desinstalar") e instale de novo pelo navegador.',
   },
@@ -337,8 +341,12 @@ function montarPainel() {
   ]);
 }
 
+// Icone "conversa" da iconografia oficial da Angulo Social (Fill cinza 21x21),
+// recolorido branco - usar essa iconografia daqui pra frente pra icones novos.
+const ICONE_CONVERSA = '<svg viewBox="0 0 21 21" width="22" height="22" aria-hidden="true"><path fill="#fff" d="M5.46,10.76c0,.9.32,1.66.98,2.3.64.66,1.4.98,2.3.98h4.48c0,1.3-.78,2.28-2.06,2.28h-5.12l-1.98,2.1c-.38.4-.94.14-.94-.4v-1.54c-1.3-.16-2.2-.94-2.2-2.22v-4.98c0-1.14.92-2.08,2.06-2.08h2.48v3.56ZM17.76,2.94c1.28,0,2.32,1.04,2.32,2.32v5.5c0,1.4-.82,2.2-2.44,2.42v1.82c0,.54-.56.8-.94.42l-2.52-2.34h-5.44c-.62,0-1.16-.22-1.62-.68-.46-.46-.7-1-.7-1.64v-5.5c0-.64.24-1.18.7-1.64.46-.46,1-.68,1.62-.68h9.02Z"/></svg>';
+
 export function iniciar() {
-  const botao = el('button', { class: 'btn-chatbot', id: 'btnChatbot', 'aria-label': 'Dúvidas sobre o app', texto: '💬' });
+  const botao = el('button', { class: 'btn-chatbot', id: 'btnChatbot', 'aria-label': 'Dúvidas sobre o app', html: ICONE_CONVERSA });
   const painel = montarPainel();
 
   document.body.append(botao, painel);

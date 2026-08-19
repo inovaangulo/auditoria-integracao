@@ -43,3 +43,8 @@ export function documentoDe(reg) {
 export function plural(n, singular, pluralPalavra) {
   return `${n} ${n === 1 ? singular : pluralPalavra}`;
 }
+
+/** Pergunta se sobrescreve quando `salvarRegistro`/`mudarStatus` recusa por edicao simultanea (err.conflito). */
+export function confirmarConflito(err) {
+  return Boolean(err?.conflito) && window.confirm(`${err.message}\n\nClique OK para sobrescrever, ou Cancelar pra revisar antes.`);
+}
