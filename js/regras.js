@@ -261,6 +261,27 @@ function consistencia(r) {
 // Alertas do cartao
 // ---------------------------------------------------------------------------
 
+/**
+ * A coluna "Alerta verificação de conteúdo" guarda uma lista separada por
+ * virgula, onde cada item e' so' a sigla do documento (ex.: "ASO") ou a
+ * sigla com o marcador "(não verificável)" que a sincronizacao grava quando
+ * o arquivo nao tinha texto legivel pra conferir (ver sincronizar-
+ * documentos.mjs, repositorio privado). Aqui isso vira uma descricao
+ * especifica pra cada caso, em vez de so' listar as siglas.
+ */
+function descreverAlertasDeConteudo(valor) {
+  const itens = String(valor).split(',').map((s) => s.trim()).filter(Boolean);
+  return itens
+    .map((item) => {
+      const semTexto = /\(não verificável\)\s*$/.test(item);
+      const tipo = item.replace(/\s*\(não verificável\)\s*$/, '');
+      return semTexto
+        ? `${tipo} — documento sem texto legível (provavelmente escaneado ou foto), não foi possível conferir automaticamente`
+        : `${tipo} — nome do colaborador não encontrado no conteúdo do arquivo`;
+    })
+    .join('; ');
+}
+
 /** Alertas ativos do registro, do mais grave para o menos. */
 export function alertas(reg) {
   const r = recalcular(reg);
@@ -275,7 +296,7 @@ export function alertas(reg) {
     // Sara pediu para essas cores nao se misturarem.
     lista.push({
       nivel: 'revisar',
-      texto: `Conferir documento(s) manualmente: ${r['Alerta verificação de conteúdo']}`,
+      texto: `Conferir documento(s) manualmente: ${descreverAlertasDeConteudo(r['Alerta verificação de conteúdo'])}`,
     });
   }
   if (r['Alerta cobrança assinatura']) {
