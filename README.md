@@ -198,7 +198,7 @@ como adicionar um novo tipo de documento) está no outro repositório, em
 ## Regras implementadas
 
 - **Documentos completos?** — todos os obrigatórios do vínculo em `Conferido
-  automaticamente`, `Conferido manualmente`, `Pendente de conferência` ou
+  automaticamente`, `Conferido manualmente`, `Pendente de conferência manual` ou
   `Não se aplica` (o arquivo já estar na pasta basta; a conferência de
   conteúdo é controle de qualidade em paralelo, não bloqueia). CNH é
   condicional e não bloqueia.

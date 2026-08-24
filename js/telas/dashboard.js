@@ -103,7 +103,7 @@ export function renderizar(container) {
   container.append(el('div', { class: 'cartao-secao' }, [
     el('h3', { texto: 'Situação de todos os documentos exigidos' }),
     barra('Conferidos (automático ou manual)', soma.conferido, soma.total, COR.verde),
-    barra('Pendente de conferência', soma.pendenteConferencia, soma.total, COR.ambar),
+    barra('Pendente de conferência manual', soma.pendenteConferencia, soma.total, COR.ambar),
     barra('Não recebidos', soma.naoRecebido, soma.total, COR.vermelho),
     barra('Não se aplica', soma.naoSeAplica, soma.total, COR.cinza),
   ]));

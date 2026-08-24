@@ -86,10 +86,10 @@ export const COLUNAS_CALCULADAS = new Set([
 // "Conferido automaticamente" so' e' atingido pela sincronizacao quando o
 // tipo passa pela conferencia de conteudo E o nome bate (schema.js -
 // VERIFICAR_NOME_POR_ABREV) - tipos pulados (RG, CNH...), com nome
-// divergente ou com arquivo ilegivel ficam em "Pendente de conferência"
+// divergente ou com arquivo ilegivel ficam em "Pendente de conferência manual"
 // ate' um humano confirmar escolhendo "Conferido manualmente" (pedido da
 // Sara, 19/08/2026 - antes so' existia "Recebido"/"Pendente").
-export const VALORES_DOC = ['Conferido automaticamente', 'Conferido manualmente', 'Pendente de conferência', 'Não recebido', 'Não se aplica'];
+export const VALORES_DOC = ['Conferido automaticamente', 'Conferido manualmente', 'Pendente de conferência manual', 'Não recebido', 'Não se aplica'];
 
 // `abrevs`: os codigos de TIPODOC aceitos no nome do arquivo
 // (padrao CPF/CNPJ_Nome_TIPODOC), usados pela sincronizacao automatica com

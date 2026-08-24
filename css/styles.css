@@ -417,7 +417,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .doc-linha select[data-v="Conferido automaticamente"] { background: var(--verde-suave); color: var(--verde); }
 .doc-linha select[data-v="Conferido manualmente"] { background: var(--verde-suave); color: var(--verde-escuro); }
-.doc-linha select[data-v="Pendente de conferência"] { background: var(--ambar-suave); color: #7a5a08; }
+.doc-linha select[data-v="Pendente de conferência manual"] { background: var(--ambar-suave); color: #7a5a08; }
 .doc-linha select[data-v="Não recebido"] { background: var(--vermelho-suave); color: var(--vermelho-escuro); }
 .doc-linha select[data-v=""] { background: var(--vermelho-suave); color: var(--vermelho-escuro); }
 .doc-linha select[data-v="Não se aplica"] { background: var(--cinza-suave); color: var(--cinza); }

@@ -154,7 +154,7 @@ function resolvido(valor) {
   // planilha real de um dia pro outro; migra pro vocabulario novo sozinho
   // na proxima vez que a sincronizacao ou o ADM tocarem naquele campo.
   return v === 'Conferido automaticamente' || v === 'Conferido manualmente'
-    || v === 'Pendente de conferência' || v === 'Não se aplica' || v === 'Recebido';
+    || v === 'Pendente de conferência manual' || v === 'Não se aplica' || v === 'Recebido';
 }
 
 /** Documentos obrigatorios ainda em aberto (condicionais nao entram). */
@@ -170,7 +170,7 @@ export function contagemDocumentos(reg) {
   for (const d of docs) {
     const v = (reg[d.campo] || '').trim();
     if (v === 'Conferido automaticamente' || v === 'Conferido manualmente' || v === 'Recebido') conta.conferido++;
-    else if (v === 'Pendente de conferência') conta.pendenteConferencia++;
+    else if (v === 'Pendente de conferência manual') conta.pendenteConferencia++;
     else if (v === 'Não se aplica') conta.naoSeAplica++;
     else conta.naoRecebido++;
   }

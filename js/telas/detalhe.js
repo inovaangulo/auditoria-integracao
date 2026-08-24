@@ -188,7 +188,7 @@ function secaoDocumentos() {
   const recebidos = obrigatorios.filter((d) => {
     const v = (rascunho[d.campo] || '').trim();
     return v === 'Conferido automaticamente' || v === 'Conferido manualmente'
-      || v === 'Pendente de conferência' || v === 'Não se aplica' || v === 'Recebido';
+      || v === 'Pendente de conferência manual' || v === 'Não se aplica' || v === 'Recebido';
   }).length;
 
   const linhas = docs.map((d) => {
