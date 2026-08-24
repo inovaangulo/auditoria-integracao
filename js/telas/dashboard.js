@@ -90,19 +90,21 @@ export function renderizar(container) {
   ]));
 
   // --- Situacao dos documentos ------------------------------------------
-  const soma = { recebido: 0, pendente: 0, naoSeAplica: 0, total: 0 };
+  const soma = { conferido: 0, pendenteConferencia: 0, naoRecebido: 0, naoSeAplica: 0, total: 0 };
   for (const r of regs) {
     const c = contagemDocumentos(r);
-    soma.recebido += c.recebido;
-    soma.pendente += c.pendente;
+    soma.conferido += c.conferido;
+    soma.pendenteConferencia += c.pendenteConferencia;
+    soma.naoRecebido += c.naoRecebido;
     soma.naoSeAplica += c.naoSeAplica;
     soma.total += c.total;
   }
 
   container.append(el('div', { class: 'cartao-secao' }, [
     el('h3', { texto: 'Situação de todos os documentos exigidos' }),
-    barra('Recebidos', soma.recebido, soma.total, COR.verde),
-    barra('Pendentes', soma.pendente, soma.total, COR.vermelho),
+    barra('Conferidos (automático ou manual)', soma.conferido, soma.total, COR.verde),
+    barra('Pendente de conferência', soma.pendenteConferencia, soma.total, COR.ambar),
+    barra('Não recebidos', soma.naoRecebido, soma.total, COR.vermelho),
     barra('Não se aplica', soma.naoSeAplica, soma.total, COR.cinza),
   ]));
 

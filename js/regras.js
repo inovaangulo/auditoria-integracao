@@ -140,13 +140,21 @@ export function paraInputDate(valor) {
 // ---------------------------------------------------------------------------
 
 /**
- * Um documento esta' resolvido quando foi Recebido ou nao se aplica aquele caso.
- * Vazio conta como pendente: e' o estado inicial da planilha e precisa aparecer
- * como falta, senao um cadastro recem-criado nasceria "completo".
+ * Um documento esta' resolvido quando o arquivo ja' esta' na pasta - conferido
+ * automaticamente, conferido manualmente, ou so' pendente de conferencia
+ * (ainda assim JA' RECEBIDO, so' falta confirmar) - ou quando nao se aplica
+ * aquele caso. So' "Não recebido"/vazio conta como falta de verdade (e' o
+ * estado inicial da planilha - um cadastro recem-criado precisa nascer
+ * "incompleto", nao "completo").
  */
 function resolvido(valor) {
   const v = (valor || '').trim();
-  return v === 'Recebido' || v === 'Não se aplica';
+  // "Recebido" e' o valor antigo (antes de 19/08/2026) - continua contando
+  // como resolvido pra' nao fazer documento ja' recebido "desaparecer" da
+  // planilha real de um dia pro outro; migra pro vocabulario novo sozinho
+  // na proxima vez que a sincronizacao ou o ADM tocarem naquele campo.
+  return v === 'Conferido automaticamente' || v === 'Conferido manualmente'
+    || v === 'Pendente de conferência' || v === 'Não se aplica' || v === 'Recebido';
 }
 
 /** Documentos obrigatorios ainda em aberto (condicionais nao entram). */
@@ -158,12 +166,13 @@ export function documentosFaltantes(reg) {
 
 export function contagemDocumentos(reg) {
   const docs = documentosDoVinculo(reg['Tipo']);
-  const conta = { recebido: 0, pendente: 0, naoSeAplica: 0, total: docs.length };
+  const conta = { conferido: 0, pendenteConferencia: 0, naoRecebido: 0, naoSeAplica: 0, total: docs.length };
   for (const d of docs) {
     const v = (reg[d.campo] || '').trim();
-    if (v === 'Recebido') conta.recebido++;
+    if (v === 'Conferido automaticamente' || v === 'Conferido manualmente' || v === 'Recebido') conta.conferido++;
+    else if (v === 'Pendente de conferência') conta.pendenteConferencia++;
     else if (v === 'Não se aplica') conta.naoSeAplica++;
-    else conta.pendente++;
+    else conta.naoRecebido++;
   }
   return conta;
 }

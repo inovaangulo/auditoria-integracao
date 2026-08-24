@@ -87,6 +87,26 @@ function definir(campo, valor) {
   desenharDerivados();
 }
 
+/**
+ * Remove da coluna "Alerta verificação de conteúdo" as entradas do TIPODOC
+ * desse documento (ex.: "ASO" ou "ASO (não verificável)") - chamado quando o
+ * ADM confirma manualmente que conferiu, dispensando o alerta sem precisar
+ * editar aquele campo separadamente.
+ */
+function limparAlertaDeConteudoDoDoc(doc) {
+  const atual = String(rascunho['Alerta verificação de conteúdo'] || '');
+  if (!atual) return;
+  const restantes = atual
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .filter((item) => {
+      const tipo = item.replace(/\s*\(não verificável\)\s*$/, '');
+      return !(doc.abrevs || []).includes(tipo);
+    });
+  definir('Alerta verificação de conteúdo', restantes.join(', '));
+}
+
 // ---------------------------------------------------------------------------
 // Montagem
 // ---------------------------------------------------------------------------
@@ -167,19 +187,28 @@ function secaoDocumentos() {
   const obrigatorios = docs.filter((d) => !d.condicional);
   const recebidos = obrigatorios.filter((d) => {
     const v = (rascunho[d.campo] || '').trim();
-    return v === 'Recebido' || v === 'Não se aplica';
+    return v === 'Conferido automaticamente' || v === 'Conferido manualmente'
+      || v === 'Pendente de conferência' || v === 'Não se aplica' || v === 'Recebido';
   }).length;
 
   const linhas = docs.map((d) => {
-    const valor = (rascunho[d.campo] || '').trim();
+    const bruto = (rascunho[d.campo] || '').trim();
+    // "Recebido" e' o valor antigo (antes de 19/08/2026) - mostra igual a
+    // "Conferido automaticamente" ate' ser reprocessado/editado; o valor
+    // gravado so' muda de fato se a pessoa tocar nesse campo.
+    const valor = bruto === 'Recebido' ? 'Conferido automaticamente' : bruto;
     const select = el('select', { 'data-v': valor });
-    select.append(el('option', { value: '', texto: 'Pendente', selected: valor === '' }));
+    select.append(el('option', { value: '', texto: 'Não recebido', selected: valor === '' }));
     for (const v of VALORES_DOC) {
       select.append(el('option', { value: v, texto: v, selected: valor === v }));
     }
     select.addEventListener('change', () => {
       select.setAttribute('data-v', select.value);
       definir(d.campo, select.value);
+      // Escolher "Conferido manualmente" e' a acao que resolve o alerta de
+      // verificacao de conteudo desse documento - nao precisa mais apagar
+      // o texto do alerta na mao em outro lugar.
+      if (select.value === 'Conferido manualmente') limparAlertaDeConteudoDoDoc(d);
     });
 
     return el('div', { class: 'doc-linha' }, [
