@@ -109,7 +109,7 @@ export class FonteSharePoint {
     }
   }
 
-  async chamar(url, opcoes = {}) {
+  async chamar(url, opcoes = {}, traduzir = traduzirErro) {
     const token = await this.token();
     const resp = await fetch(url, {
       ...opcoes,
@@ -122,7 +122,7 @@ export class FonteSharePoint {
 
     if (!resp.ok) {
       const corpo = await resp.text();
-      throw new Error(traduzirErro(resp.status, corpo));
+      throw new Error(traduzir(resp.status, corpo));
     }
     return resp.status === 204 ? null : resp.json();
   }
@@ -214,6 +214,95 @@ export class FonteSharePoint {
       method: 'POST',
       body: JSON.stringify({ shift: 'Up' }),
     });
+  }
+
+  // -------------------------------------------------------------------------
+  // Pastas de documentos (DOCUMENTOS_INTEGRACAO) - gerador de pasta (19/08/2026)
+  // -------------------------------------------------------------------------
+  // Mesmo site que a sincronizacao automatica varre (scripts/sincronizar-
+  // documentos.mjs, repositorio privado), so' que aqui e' a PESSOA LOGADA
+  // quem grava, com a propria permissao dela (delegada) - nao precisa de
+  // nenhuma permissao nova no Azure AD alem da que o app ja' tem
+  // (Files.ReadWrite.All), diferente da automacao (que usa Sites.Selected
+  // porque roda sem ninguem logado).
+
+  /**
+   * Acha a pasta do colaborador se ja' existir, ou cria se nao existir -
+   * nunca duplica (pedido da Sara: se alguem ja' tiver criado a pasta na
+   * mao, so' aproveita e sobe os documentos dentro dela).
+   */
+  async criarOuAcharPastaColaborador(nomePasta) {
+    const { siteId, pastaBase } = CONFIG.pastasColaboradores;
+    const token = await this.token();
+    const caminho = codificarCaminho(`${pastaBase}/${nomePasta}`);
+
+    const existente = await fetch(`${GRAFO}/sites/${siteId}/drive/root:/${caminho}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (existente.ok) {
+      const item = await existente.json();
+      return { id: item.id, webUrl: item.webUrl, criada: false };
+    }
+    if (existente.status !== 404) {
+      throw new Error(traduzirErroPasta(existente.status, await existente.text()));
+    }
+
+    const nova = await this.chamar(
+      `${GRAFO}/sites/${siteId}/drive/root:/${codificarCaminho(pastaBase)}:/children`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ name: nomePasta, folder: {}, '@microsoft.graph.conflictBehavior': 'fail' }),
+      },
+      traduzirErroPasta
+    );
+    return { id: nova.id, webUrl: nova.webUrl, criada: true };
+  }
+
+  /**
+   * Envia um arquivo (File do <input>) pra dentro da pasta do colaborador -
+   * upload simples para arquivos pequenos, ou em fatias (sessao de upload)
+   * para os maiores que 4 MB, que o upload simples do Graph nao aceita
+   * (ex.: foto em alta resolucao).
+   */
+  async enviarArquivoParaPasta(pastaId, nomeArquivo, arquivo) {
+    const { siteId } = CONFIG.pastasColaboradores;
+    const LIMITE_SIMPLES = 4 * 1024 * 1024;
+    const caminhoItem = `${GRAFO}/sites/${siteId}/drive/items/${pastaId}:/${encodeURIComponent(nomeArquivo)}:`;
+
+    if (arquivo.size <= LIMITE_SIMPLES) {
+      const bytes = await arquivo.arrayBuffer();
+      await this.chamar(`${caminhoItem}/content`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: bytes,
+      }, traduzirErroPasta);
+      return;
+    }
+
+    const sessao = await this.chamar(`${caminhoItem}/createUploadSession`, {
+      method: 'POST',
+      body: JSON.stringify({ item: { '@microsoft.graph.conflictBehavior': 'replace' } }),
+    }, traduzirErroPasta);
+
+    // Multiplo de 320 KiB, exigido pela API de upload em sessao.
+    const TAMANHO_FATIA = 10 * 320 * 1024;
+    let inicio = 0;
+    while (inicio < arquivo.size) {
+      const fim = Math.min(inicio + TAMANHO_FATIA, arquivo.size) - 1;
+      const fatia = arquivo.slice(inicio, fim + 1);
+      // A URL da sessao ja' e' autenticada - o proprio Graph orienta a NAO
+      // mandar o cabecalho Authorization nessas requisicoes de fatia.
+      const resp = await fetch(sessao.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Length': String(fatia.size),
+          'Content-Range': `bytes ${inicio}-${fim}/${arquivo.size}`,
+        },
+        body: fatia,
+      });
+      if (!resp.ok) throw new Error(`Falha ao enviar parte do arquivo "${nomeArquivo}" (${resp.status}).`);
+      inicio = fim + 1;
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -311,6 +400,31 @@ export class FonteSharePoint {
     }
     return mapa;
   }
+}
+
+/** Escapa cada trecho do caminho separadamente - preserva as barras como separador. */
+function codificarCaminho(caminho) {
+  return caminho.split('/').map(encodeURIComponent).join('/');
+}
+
+/** Erro cru do Graph traduzido, especifico pro fluxo de criar pasta/enviar documento. */
+function traduzirErroPasta(status, corpo) {
+  if (status === 401 || status === 403) {
+    return 'Sem permissão para criar a pasta. Confirme se sua conta tem acesso à área '
+      + 'DOCUMENTOS_INTEGRACAO no SharePoint.';
+  }
+  if (status === 404) {
+    return 'A pasta base (DOCUMENTOS_INTEGRACAO) não foi encontrada — confira a configuração em js/config.js.';
+  }
+  if (status === 423) {
+    return 'Um dos arquivos está bloqueado para edição no SharePoint. Tente de novo em alguns instantes.';
+  }
+  if (status === 429 || status === 503) {
+    return 'O SharePoint está limitando as requisições. Aguarde alguns segundos e tente de novo.';
+  }
+  let detalhe = '';
+  try { detalhe = JSON.parse(corpo)?.error?.message || ''; } catch { /* corpo nao-JSON */ }
+  return `Erro ${status} ao falar com o SharePoint${detalhe ? ': ' + detalhe : '.'}`;
 }
 
 /** Converte o erro cru do Graph em algo que o ADM consiga agir. */

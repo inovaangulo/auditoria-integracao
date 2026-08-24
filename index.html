@@ -20,7 +20,7 @@
   <div class="conta">
     <span id="rotuloFonte">—</span>
     <button class="btn-topo" id="btnConectar" hidden>Entrar com conta Ângulo</button>
-    <button class="btn-topo" id="btnGeradorPasta">Gerar nome de pasta</button>
+    <button class="btn-topo" id="btnGeradorPasta">Criar pasta de colaborador</button>
     <button class="btn-topo" id="btnImportar">Importar planilha</button>
     <button class="btn-topo" id="btnExportar">Exportar planilha</button>
     <button class="btn-topo" id="btnAtualizar" hidden>Atualizar</button>
@@ -101,17 +101,18 @@
 
 <input type="file" id="inputArquivo" accept=".xlsx,.xlsm" hidden>
 
-<!-- Gerador do nome de pasta (padrão CPF/CNPJ_Nome completo) -->
+<!-- Criador de pasta do colaborador (padrão CPF/CNPJ_Nome completo) -->
 <div class="fundo-modal" id="fundoModalPasta" hidden></div>
 <div class="modal-central" id="modalPasta" hidden role="dialog" aria-modal="true" aria-labelledby="modalPastaTitulo">
   <div class="modal-topo">
-    <h2 id="modalPastaTitulo">Gerar nome de pasta</h2>
+    <h2 id="modalPastaTitulo">Criar pasta de colaborador</h2>
     <button class="btn-fechar" id="btnFecharModalPasta" aria-label="Fechar">&times;</button>
   </div>
   <div class="modal-corpo">
     <p class="modal-explicacao">
-      Preencha os dados do colaborador e copie o resultado como nome da pasta no SharePoint —
-      já sai no formato exato que a sincronização automática reconhece.
+      Preencha os dados do colaborador — o nome da pasta já sai no formato exato que a
+      sincronização automática reconhece. Se preferir, cria a pasta de verdade no SharePoint
+      e já envia os documentos por aqui mesmo.
     </p>
     <label class="campo largo">
       <span>Nome completo</span>
@@ -129,6 +130,16 @@
         <button class="btn-secundario" id="btnCopiarPasta" disabled>Copiar</button>
       </div>
     </label>
+
+    <div id="pastaUploadSecao" hidden>
+      <label class="campo largo">
+        <span>Documentos (opcional) — escolha o tipo de cada um antes de enviar</span>
+        <input type="file" id="pastaArquivosInput" multiple>
+      </label>
+      <div id="pastaListaArquivos"></div>
+      <button class="btn-primario" id="btnCriarPasta" disabled>Criar pasta no SharePoint</button>
+      <div id="pastaResultado"></div>
+    </div>
   </div>
 </div>
 

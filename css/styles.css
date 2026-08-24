@@ -294,6 +294,34 @@ button { font-family: inherit; cursor: pointer; }
   font-size: 12px;
 }
 
+#pastaUploadSecao { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--linha); padding-top: 14px; }
+
+#pastaArquivosInput { font-size: 12.5px; }
+
+#pastaListaArquivos { display: flex; flex-direction: column; gap: 8px; }
+
+.pasta-arquivo-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--cinza-suave);
+  border-radius: 6px;
+  font-size: 12.5px;
+}
+.pasta-arquivo-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pasta-arquivo-linha select {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid var(--linha);
+  border-radius: 5px;
+}
+.pasta-arquivo-status { font-size: 11.5px; color: var(--tinta-fraca); white-space: nowrap; }
+
+#pastaResultado { display: flex; flex-direction: column; gap: 8px; }
+#pastaResultado a { color: var(--vermelho-escuro); font-weight: 600; }
+
 .gaveta-rodape {
   border-top: 1px solid var(--linha);
   padding: 12px 20px;

@@ -127,6 +127,22 @@ export const DOCUMENTOS = [
   { campo: 'Doc: Relação dos Alojamentos (PJ)',       label: 'Relação dos Alojamentos',         vinculo: 'PJ', abrevs: ['ALOJAMENTO'], verificarNome: false },
 ];
 
+/**
+ * Sigla (TIPODOC) -> rotulo pra mostrar num menu (ex.: gerador de pasta).
+ * Quando um campo aceita mais de uma sigla (RG ou CNH), cada sigla usa o
+ * proprio nome como rotulo em vez do rotulo combinado do campo - senao "RG"
+ * e "CNH" apareceriam os dois como "RG ou CNH" no menu, sem diferenciar.
+ */
+export const OPCOES_TIPODOC = (() => {
+  const mapa = new Map();
+  for (const doc of DOCUMENTOS) {
+    for (const abrev of doc.abrevs || []) {
+      if (!mapa.has(abrev)) mapa.set(abrev, doc.abrevs.length > 1 ? abrev : doc.label);
+    }
+  }
+  return [...mapa.entries()].map(([valor, rotulo]) => ({ valor, rotulo }));
+})();
+
 /** Mapa TIPODOC (maiusculo, sem acento) -> lista de campos que ele satisfaz. */
 export const CAMPOS_POR_ABREV = (() => {
   const mapa = {};
