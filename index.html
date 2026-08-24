@@ -114,6 +114,18 @@
       sincronização automática reconhece. Se preferir, cria a pasta de verdade no SharePoint
       e já envia os documentos por aqui mesmo.
     </p>
+
+    <div class="pasta-modo" id="pastaModo">
+      <button type="button" class="pasta-modo-opcao" id="pastaModoNovo" data-modo="novo">Novo colaborador</button>
+      <button type="button" class="pasta-modo-opcao" id="pastaModoExistente" data-modo="existente">Colaborador existente</button>
+    </div>
+
+    <label class="campo largo" id="pastaBuscaSecao" hidden>
+      <span>Buscar colaborador (nome, CPF ou CNPJ)</span>
+      <input type="text" id="pastaBuscaInput" placeholder="Digite pra buscar…">
+      <div id="pastaBuscaResultados"></div>
+    </label>
+
     <label class="campo largo">
       <span>Nome completo</span>
       <input type="text" id="pastaNome" placeholder="Ex.: Ana Paula Ribeiro">
@@ -124,7 +136,7 @@
     </label>
     <div class="alerta" id="pastaAviso"></div>
     <label class="campo largo">
-      <span>Nome da pasta (copie exatamente isto)</span>
+      <span>Nome da pasta</span>
       <div class="pasta-saida-linha">
         <input type="text" id="pastaSaida" readonly placeholder="Preencha os campos acima…">
         <button class="btn-secundario" id="btnCopiarPasta" disabled>Copiar</button>

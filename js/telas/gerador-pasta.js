@@ -20,9 +20,29 @@ import { OPCOES_TIPODOC } from '../schema.js';
 import { el, limpar } from '../ui.js';
 
 const nos = {};
-let arquivos = []; // { id, arquivo: File, tipo: '', status: '' }
+let arquivos = []; // { id, arquivo: File, tipo: '', tipoCustom: '', status: '' }
 let proximoId = 1;
 let criando = false;
+let modo = 'novo'; // 'novo' (digita nome/CPF) ou 'existente' (busca na lista ja' carregada)
+
+const OUTRO = '__outro__';
+
+function normalizarBusca(s) {
+  return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+/** Normaliza o tipo digitado a mao pro mesmo padrao das siglas conhecidas (maiuscula, sem acento/espaco). */
+function normalizarTipoCustom(s) {
+  return String(s || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '');
+}
+
+/** Tipo que de fato vai pro nome do arquivo - a sigla escolhida, ou o texto digitado em "Outro". */
+function tipoEfetivo(item) {
+  return item.tipo === OUTRO ? normalizarTipoCustom(item.tipoCustom) : item.tipo;
+}
 
 export function configurar() {
   nos.modal = document.getElementById('modalPasta');
@@ -37,6 +57,12 @@ export function configurar() {
   nos.listaArquivos = document.getElementById('pastaListaArquivos');
   nos.btnCriar = document.getElementById('btnCriarPasta');
   nos.resultado = document.getElementById('pastaResultado');
+  nos.modoContainer = document.getElementById('pastaModo');
+  nos.modoNovo = document.getElementById('pastaModoNovo');
+  nos.modoExistente = document.getElementById('pastaModoExistente');
+  nos.buscaSecao = document.getElementById('pastaBuscaSecao');
+  nos.buscaInput = document.getElementById('pastaBuscaInput');
+  nos.buscaResultados = document.getElementById('pastaBuscaResultados');
 
   document.getElementById('btnFecharModalPasta').addEventListener('click', fechar);
   nos.fundo.addEventListener('click', fechar);
@@ -48,9 +74,13 @@ export function configurar() {
   nos.doc.addEventListener('input', atualizar);
   nos.btnCopiar.addEventListener('click', copiar);
 
+  nos.modoNovo.addEventListener('click', () => definirModo('novo'));
+  nos.modoExistente.addEventListener('click', () => definirModo('existente'));
+  nos.buscaInput.addEventListener('input', () => renderizarBuscaResultados());
+
   nos.arquivosInput.addEventListener('change', () => {
     for (const arquivo of nos.arquivosInput.files) {
-      arquivos.push({ id: proximoId++, arquivo, tipo: '', status: '' });
+      arquivos.push({ id: proximoId++, arquivo, tipo: '', tipoCustom: '', status: '' });
     }
     nos.arquivosInput.value = ''; // permite escolher o mesmo arquivo de novo se remover e reconsiderar
     desenharListaArquivos();
@@ -65,12 +95,72 @@ export function abrir() {
   arquivos = [];
   criando = false;
   limpar(nos.resultado);
-  nos.uploadSecao.hidden = !estado.fonte?.criarOuAcharPastaColaborador;
+  const usaSharePoint = Boolean(estado.fonte?.criarOuAcharPastaColaborador);
+  nos.uploadSecao.hidden = !usaSharePoint;
+  // Com o upload no proprio app, copiar o nome pra colar em outro lugar
+  // deixa de fazer sentido - so' continua no modo local (sem SharePoint).
+  nos.btnCopiar.hidden = usaSharePoint;
+  // "Colaborador existente" so' faz sentido com dados carregados de verdade.
+  nos.modoContainer.hidden = !usaSharePoint;
   desenharListaArquivos();
+  definirModo('novo');
   nos.modal.hidden = false;
   nos.fundo.hidden = false;
   atualizar();
   nos.nome.focus();
+}
+
+/** Alterna entre digitar os dados de um colaborador novo ou buscar um ja' existente. */
+function definirModo(novoModo) {
+  modo = novoModo;
+  nos.modoNovo.classList.toggle('ativo', modo === 'novo');
+  nos.modoExistente.classList.toggle('ativo', modo === 'existente');
+  nos.buscaSecao.hidden = modo !== 'existente';
+  nos.buscaInput.value = '';
+  limpar(nos.buscaResultados);
+  nos.nome.value = '';
+  nos.doc.value = '';
+  nos.nome.readOnly = modo === 'existente';
+  nos.doc.readOnly = modo === 'existente';
+  atualizar();
+  if (modo === 'existente') nos.buscaInput.focus();
+  else nos.nome.focus();
+}
+
+/** Lista os colaboradores ja' cadastrados que batem com a busca (nome, CPF ou CNPJ). */
+function renderizarBuscaResultados() {
+  limpar(nos.buscaResultados);
+  const termo = normalizarBusca(nos.buscaInput.value.trim());
+  if (!termo) return;
+
+  const encontrados = (estado.registros || [])
+    .filter((r) => {
+      const alvo = normalizarBusca(`${r['Nome completo'] || ''} ${r['CPF'] || ''} ${r['CNPJ (se PJ)'] || ''}`);
+      return alvo.includes(termo);
+    })
+    .slice(0, 8);
+
+  if (!encontrados.length) {
+    nos.buscaResultados.append(el('p', { class: 'pasta-busca-item', texto: 'Nenhum colaborador encontrado.' }));
+    return;
+  }
+
+  for (const reg of encontrados) {
+    const doc = reg['CPF'] || reg['CNPJ (se PJ)'] || '';
+    nos.buscaResultados.append(el('button', {
+      type: 'button', class: 'pasta-busca-item',
+      onclick: () => {
+        nos.nome.value = reg['Nome completo'] || '';
+        nos.doc.value = doc;
+        nos.buscaInput.value = reg['Nome completo'] || '';
+        limpar(nos.buscaResultados);
+        atualizar();
+      },
+    }, [
+      reg['Nome completo'] || '(sem nome)',
+      el('span', { class: 'sub', texto: ` — ${doc || 'sem CPF/CNPJ'}` }),
+    ]));
+  }
 }
 
 function fechar() {
@@ -160,11 +250,21 @@ function desenharListaArquivos() {
     const select = el('select', { disabled: criando }, [
       el('option', { value: '', texto: 'Escolha o tipo…', selected: item.tipo === '' }),
       ...OPCOES_TIPODOC.map((o) => el('option', { value: o.valor, texto: o.rotulo, selected: item.tipo === o.valor })),
+      el('option', { value: OUTRO, texto: 'Outro (digitar)', selected: item.tipo === OUTRO }),
     ]);
     select.addEventListener('change', () => {
       item.tipo = select.value;
+      desenharListaArquivos(); // precisa redesenhar pra mostrar/escoder o campo de texto do "Outro"
       atualizarBotaoCriar();
     });
+
+    const campoCustom = item.tipo === OUTRO
+      ? el('input', {
+          type: 'text', placeholder: 'Nome do tipo (ex.: CARTA REFERENCIA)', value: item.tipoCustom || '',
+          disabled: criando,
+          oninput: (e) => { item.tipoCustom = e.target.value; atualizarBotaoCriar(); },
+        })
+      : null;
 
     const btnRemover = el('button', {
       class: 'btn-secundario', type: 'button', texto: 'Remover', disabled: criando,
@@ -178,6 +278,7 @@ function desenharListaArquivos() {
     nos.listaArquivos.append(el('div', { class: 'pasta-arquivo-linha' }, [
       el('span', { class: 'pasta-arquivo-nome', texto: item.arquivo.name }),
       select,
+      campoCustom,
       btnRemover,
       item.status ? el('span', { class: 'pasta-arquivo-status', texto: item.status }) : null,
     ]));
@@ -187,7 +288,7 @@ function desenharListaArquivos() {
 function atualizarBotaoCriar() {
   if (!nos.btnCriar) return;
   const prontoDados = Boolean(nos.saida.value);
-  const arquivosOk = arquivos.length > 0 && arquivos.every((a) => a.tipo);
+  const arquivosOk = arquivos.length > 0 && arquivos.every((a) => tipoEfetivo(a));
   nos.btnCriar.disabled = criando || !prontoDados || !arquivosOk;
 }
 
@@ -213,7 +314,7 @@ async function criarPasta() {
       desenharListaArquivos();
       try {
         const extensao = item.arquivo.name.includes('.') ? `.${item.arquivo.name.split('.').pop()}` : '';
-        const nomeArquivo = `${item.tipo}${extensao}`;
+        const nomeArquivo = `${tipoEfetivo(item)}${extensao}`;
         await estado.fonte.enviarArquivoParaPasta(pastaId, nomeArquivo, item.arquivo);
         item.status = 'Enviado ✓';
         sucesso++;
