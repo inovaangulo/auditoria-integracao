@@ -202,6 +202,11 @@ como adicionar um novo tipo de documento) está no outro repositório, em
   `Não se aplica` (o arquivo já estar na pasta basta; a conferência de
   conteúdo é controle de qualidade em paralelo, não bloqueia). CNH é
   condicional e não bloqueia.
+- **Checklist por cliente** — além do vínculo (CLT/PJ), alguns documentos só
+  são exigidos (ou dispensados) conforme o "Cliente atual" do colaborador —
+  ex.: NR-18/eSocial/Foto/CCMEI/APR/declarações PJ são específicos da Trivia,
+  NR-06 não é exigido da Motiva Pantanal. Regras em `DOCUMENTOS` (`schema.js`),
+  fonte: `DOCUMENTOS DE INTEGRAÇÃO.docx` (ADM, 26/08/2026).
 - **Cobrança de assinatura** — dias corridos desde o envio; zera quando aprovado.
 - **Confirmação da empresa (PJ)** — dias corridos desde o cadastro no Wehandle.
 - **Prazo da análise Wehandle** — em dias **úteis**, descontando sábado, domingo

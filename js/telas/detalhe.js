@@ -79,11 +79,16 @@ export function estaAberta() {
   return !nos.gaveta.hidden;
 }
 
+// Campos que mudam QUAL documento e' exigido (nao so' o valor de um documento
+// ja' exibido) - precisam redesenhar a secao inteira, nao so' o resumo.
+const CAMPOS_QUE_MUDAM_CHECKLIST = new Set(['Tipo', 'Cliente atual']);
+
 /** Atualiza um campo do rascunho e redesenha o que depende dele. */
 function definir(campo, valor) {
   rascunho[campo] = valor;
   rascunho = recalcular(rascunho);
   nos.aviso.textContent = '';
+  if (CAMPOS_QUE_MUDAM_CHECKLIST.has(campo)) substituir('secaoDocumentos', secaoDocumentos());
   desenharDerivados();
 }
 
@@ -183,7 +188,7 @@ function secaoAlertas() {
 }
 
 function secaoDocumentos() {
-  const docs = documentosDoVinculo(rascunho['Tipo']);
+  const docs = documentosDoVinculo(rascunho['Tipo'], rascunho['Cliente atual']);
   const obrigatorios = docs.filter((d) => !d.condicional);
   const recebidos = obrigatorios.filter((d) => {
     const v = (rascunho[d.campo] || '').trim();

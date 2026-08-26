@@ -154,7 +154,7 @@
     <div class="meta">
       <span>✍️ Criado por: Sara Cantão</span>
       <span>📋 Preparado para: gestão / apresentação</span>
-      <span>🗓️ Atualizado em 17/08/2026</span>
+      <span>🗓️ Atualizado em 26/08/2026</span>
       <span>🔗 Plataforma: GitHub Pages + SharePoint (Microsoft Graph) + GitHub Actions</span>
     </div>
   </div>
@@ -216,7 +216,7 @@
         <span class="badge b-feito"><span class="dot"></span> Já temos</span></div>
       <div class="grid3">
         <div class="col"><div class="lbl have">✓ O que já temos</div>
-          <p>Clicar num cartão abre um painel lateral com dados básicos, o checklist de documentos exigido pelo vínculo (CLT pede 10, PJ pede 15 — o app troca automaticamente), alertas de prazo em destaque — cada um mostrando a data de entrada do colaborador (17/08/2026) — e histórico de quem alterou o quê — <b>compartilhado</b>, gravado numa aba própria da planilha ("Histórico de Alterações", ajustada em 18/08/2026 depois de um bug que impedia essa aba de ser criada — ver seção de limitações): qualquer pessoa vê o mesmo histórico, de qualquer computador. Também tem um botão para <b>excluir o colaborador</b> (17/08/2026) — remove a linha de verdade da planilha, com confirmação antes de agir e registro de quem excluiu e quando; assim o ADM resolve casos como pasta de teste criada por engano sozinho, sem precisar de acesso direto ao Excel.</p></div>
+          <p>Clicar num cartão abre um painel lateral com dados básicos, o checklist de documentos exigido pelo vínculo <b>e pelo cliente atual do colaborador</b> (CLT/PJ define a base, e alguns documentos só entram — ou saem, caso do NR-06 pra Motiva Pantanal — conforme o cliente; a lista muda na hora se o vínculo ou o cliente forem editados na ficha — 26/08/2026), alertas de prazo em destaque — cada um mostrando a data de entrada do colaborador (17/08/2026) — e histórico de quem alterou o quê — <b>compartilhado</b>, gravado numa aba própria da planilha ("Histórico de Alterações", ajustada em 18/08/2026 depois de um bug que impedia essa aba de ser criada — ver seção de limitações): qualquer pessoa vê o mesmo histórico, de qualquer computador. Também tem um botão para <b>excluir o colaborador</b> (17/08/2026) — remove a linha de verdade da planilha, com confirmação antes de agir e registro de quem excluiu e quando; assim o ADM resolve casos como pasta de teste criada por engano sozinho, sem precisar de acesso direto ao Excel.</p></div>
         <div class="col"><div class="lbl miss">Falta</div>
           <p>Nada bloqueante.</p></div>
         <div class="col"><div class="lbl how">Como fazer</div>
@@ -603,11 +603,12 @@
       <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Cabeçalho da aba "Histórico de Alterações" estilizado</b> — o Microsoft Graph não permite colorir a aba em si (só nome/posição/visibilidade), então o cabeçalho da planilha (linha 1) ganhou fundo vermelho e texto branco em negrito, na paleta da Ângulo Social, aplicado pelo app e pela sincronização automática — concluído em 18/08/2026.</p></div></div>
       <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Status do documento detalha como foi conferido</b> — o único status "Recebido" virou quatro: <b>Conferido automaticamente</b> (conteúdo confirmado pelo robô), <b>Conferido manualmente</b> (ADM confirmou pela ficha — essa escolha também dispensa qualquer alerta de verificação de conteúdo daquele documento, sem precisar editar o alerta separadamente), <b>Pendente de conferência manual</b> (arquivo já na pasta, só falta confirmar — continua contando como documentação completa pro Kanban) e <b>Não recebido</b>. Valores antigos ("Recebido") continuam reconhecidos como já conferidos, migrando sozinhos na próxima sincronização — concluído em 19/08/2026.</p></div></div>
       <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Exportação de planilha agora sai estilizada</b> — a biblioteca gratuita usada antes (SheetJS) descartava qualquer estilo ao gerar o .xlsx (recurso pago na versão Pro); trocada por uma variante de código aberto equivalente ("xlsx-js-style") que preserva cor de fundo e negrito no cabeçalho, sem custo — concluído em 18/08/2026.</p></div></div>
+      <div class="row"><span class="num" style="background:var(--green)">✓</span><div><p><b>Checklist de documentos por cliente</b> — até aqui o checklist variava só pelo vínculo (CLT/PJ); agora também varia pelo cliente atual do colaborador, com base no documento oficial da ADM ("Documentos de Integração"). A Trivia (único cliente cadastrado até agora) soma NR-18, Foto e Cadastro no eSocial (CLT) — ou NR-18, Foto, CCMEI, APR e as 3 declarações PJ (CCMEI, atendimento a leis trabalhistas, inexistência de vínculo, inexistência de riscos, relação de alojamentos) — em cima da base comum a qualquer cliente (Ordem de Serviço, EPI, NR-06, RG/CNH, ASO, CTPS/Contrato). NR-06 deixa de ser exigido da Motiva Pantanal, e Comprovante de Endereço passa a valer só para CLT (PJ já tem endereço no CNPJ). A ficha do colaborador atualiza a lista de documentos na hora quando o vínculo ou o cliente mudam. Documentos extras específicos de outros clientes (cartão de vacina, tipo sanguíneo, apólice de seguro, declarações de risco/NR/N3) ficam para uma próxima etapa, por exigirem colunas novas na planilha real — concluído em 26/08/2026.</p></div></div>
     </div>
   </section>
 
   <footer>
-    Ângulo Social · Consultoria e Projetos Socioambientais — Auditoria de Integração · Documento de trabalho interno · Atualizado em 18/08/2026
+    Ângulo Social · Consultoria e Projetos Socioambientais — Auditoria de Integração · Documento de trabalho interno · Atualizado em 26/08/2026
   </footer>
 
 </div>

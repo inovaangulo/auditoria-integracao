@@ -159,13 +159,13 @@ function resolvido(valor) {
 
 /** Documentos obrigatorios ainda em aberto (condicionais nao entram). */
 export function documentosFaltantes(reg) {
-  return documentosDoVinculo(reg['Tipo'])
+  return documentosDoVinculo(reg['Tipo'], reg['Cliente atual'])
     .filter((d) => !d.condicional && !resolvido(reg[d.campo]))
     .map((d) => d.label);
 }
 
 export function contagemDocumentos(reg) {
-  const docs = documentosDoVinculo(reg['Tipo']);
+  const docs = documentosDoVinculo(reg['Tipo'], reg['Cliente atual']);
   const conta = { conferido: 0, pendenteConferencia: 0, naoRecebido: 0, naoSeAplica: 0, total: docs.length };
   for (const d of docs) {
     const v = (reg[d.campo] || '').trim();

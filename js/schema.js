@@ -100,32 +100,42 @@ export const VALORES_DOC = ['Conferido automaticamente', 'Conferido manualmente'
 // imagem, sem texto legivel extraivel do PDF - a sincronizacao pula a
 // conferencia de nome nesses casos (mesmo criterio da skill de auditoria de
 // pastas locais), em vez de arriscar um falso alarme.
+// `clientes`: se presente, o documento so' e' exigido de colaboradores desses
+// clientes (match por "Cliente atual", normalizado - ver normalizarCliente).
+// `exceto`: se presente, o documento e' exigido de todo mundo MENOS desses
+// clientes. Nunca usar `clientes` e `exceto` juntos no mesmo item.
+// Fonte: DOCUMENTOS DE INTEGRAÇÃO.docx (ADM, conferido com a Sara 26/08/2026).
 export const DOCUMENTOS = [
   { campo: 'Doc: RG ou CNH',                          label: 'RG ou CNH',                       vinculo: 'todos', abrevs: ['RG', 'CNH'], verificarNome: false },
-  { campo: 'Doc: Comprovante de Endereço',            label: 'Comprovante de Endereço',         vinculo: 'todos', abrevs: ['ENDERECO'] },
+  { campo: 'Doc: Comprovante de Endereço',            label: 'Comprovante de Endereço',         vinculo: 'CLT', abrevs: ['ENDERECO'] },
   { campo: 'Doc: Ordem de Serviço',                   label: 'Ordem de Serviço',                vinculo: 'todos', abrevs: ['OS'] },
   { campo: 'Doc: Ficha de Entrega de EPI',            label: 'Ficha de Entrega de EPI',         vinculo: 'todos', abrevs: ['EPI'] },
-  { campo: 'Doc: Treinamento NR-18',                  label: 'Treinamento NR-18',               vinculo: 'todos', abrevs: ['NR18'], verificarNome: false },
-  { campo: 'Doc: Treinamento NR-06',                  label: 'Treinamento NR-06',               vinculo: 'todos', abrevs: ['NR06'], verificarNome: false },
+  { campo: 'Doc: Treinamento NR-18',                  label: 'Treinamento NR-18',               vinculo: 'todos', abrevs: ['NR18'], verificarNome: false, clientes: ['Trivia'] },
+  { campo: 'Doc: Treinamento NR-06',                  label: 'Treinamento NR-06',               vinculo: 'todos', abrevs: ['NR06'], verificarNome: false, exceto: ['Motiva Pantanal'] },
   { campo: 'Doc: ASO',                                label: 'ASO',                             vinculo: 'todos', abrevs: ['ASO'] },
-  { campo: 'Doc: Foto',                               label: 'Foto',                            vinculo: 'todos', abrevs: ['FOTO'] },
+  { campo: 'Doc: Foto',                               label: 'Foto',                            vinculo: 'todos', abrevs: ['FOTO'], clientes: ['Trivia'] },
   { campo: 'Doc: CNH (condicional - só quando a função exige)',
     label: 'CNH (só se a função exige)', vinculo: 'todos', condicional: true, abrevs: ['CNH'], verificarNome: false },
 
   { campo: 'Doc: Carteira de Trabalho (CLT)',         label: 'Carteira de Trabalho (CTPS)',     vinculo: 'CLT', abrevs: ['CTPS'], verificarNome: false },
-  { campo: 'Doc: Cadastro no eSocial (CLT)',          label: 'Cadastro no eSocial',             vinculo: 'CLT', abrevs: ['ESOCIAL'] },
+  { campo: 'Doc: Cadastro no eSocial (CLT)',          label: 'Cadastro no eSocial',             vinculo: 'CLT', abrevs: ['ESOCIAL'], clientes: ['Trivia'] },
 
-  { campo: 'Doc: CCMEI (PJ)',                         label: 'CCMEI',                           vinculo: 'PJ', abrevs: ['CCMEI'] },
+  { campo: 'Doc: CCMEI (PJ)',                         label: 'CCMEI',                           vinculo: 'PJ', abrevs: ['CCMEI'], clientes: ['Trivia'] },
   { campo: 'Doc: Contrato de Prestação de Serviço (PJ)', label: 'Contrato de Prestação de Serviço', vinculo: 'PJ', abrevs: ['CONTRATO'] },
-  { campo: 'Doc: APR (PJ)',                           label: 'APR (Análise Preliminar de Risco)', vinculo: 'PJ', abrevs: ['APR'], verificarNome: false },
+  { campo: 'Doc: APR (PJ)',                           label: 'APR (Análise Preliminar de Risco)', vinculo: 'PJ', abrevs: ['APR'], verificarNome: false, clientes: ['Trivia'] },
   { campo: 'Doc: Declaração Atendimento Leis Trabalhistas (PJ)',
-    label: 'Declaração de Atendimento às Leis Trabalhistas', vinculo: 'PJ', abrevs: ['DECLLEIS'] },
+    label: 'Declaração de Atendimento às Leis Trabalhistas', vinculo: 'PJ', abrevs: ['DECLLEIS'], clientes: ['Trivia'] },
   { campo: 'Doc: Declaração Inexistência de Vínculo (PJ)',
-    label: 'Declaração de Inexistência de Vínculo', vinculo: 'PJ', abrevs: ['DECLVINCULO'] },
+    label: 'Declaração de Inexistência de Vínculo', vinculo: 'PJ', abrevs: ['DECLVINCULO'], clientes: ['Trivia'] },
   { campo: 'Doc: Declaração Inexistência de Riscos (PJ)',
-    label: 'Declaração de Inexistência de Riscos', vinculo: 'PJ', abrevs: ['DECLRISCOS'] },
-  { campo: 'Doc: Relação dos Alojamentos (PJ)',       label: 'Relação dos Alojamentos',         vinculo: 'PJ', abrevs: ['ALOJAMENTO'], verificarNome: false },
+    label: 'Declaração de Inexistência de Riscos', vinculo: 'PJ', abrevs: ['DECLRISCOS'], clientes: ['Trivia'] },
+  { campo: 'Doc: Relação dos Alojamentos (PJ)',       label: 'Relação dos Alojamentos',         vinculo: 'PJ', abrevs: ['ALOJAMENTO'], verificarNome: false, clientes: ['Trivia', 'Motiva Pantanal'] },
 ];
+
+/** Normaliza nome de cliente pra comparação (sem acento, sem maiúscula, sem espaço nas pontas). */
+export function normalizarCliente(nome) {
+  return (nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+}
 
 /**
  * Sigla (TIPODOC) -> rotulo pra mostrar num menu (ex.: gerador de pasta).
@@ -166,9 +176,22 @@ export const VERIFICAR_NOME_POR_ABREV = (() => {
   return mapa;
 })();
 
-/** Documentos exigidos do vinculo informado (CLT ou PJ). */
-export function documentosDoVinculo(tipo) {
-  return DOCUMENTOS.filter((d) => d.vinculo === 'todos' || d.vinculo === tipo);
+/**
+ * Documentos exigidos do vinculo informado (CLT ou PJ) e, se informado, do
+ * cliente do colaborador - documentos com `clientes` so' entram se o cliente
+ * bater com a lista, documentos com `exceto` entram pra qualquer cliente que
+ * NAO bata com a lista. Sem `cliente` informado, aplica so' o filtro de vinculo
+ * (usado quando ainda nao se sabe o cliente, ex.: tela de novo cadastro vazia).
+ */
+export function documentosDoVinculo(tipo, cliente) {
+  const alvo = cliente === undefined ? null : normalizarCliente(cliente);
+  return DOCUMENTOS.filter((d) => {
+    if (d.vinculo !== 'todos' && d.vinculo !== tipo) return false;
+    if (alvo === null) return true;
+    if (d.clientes) return d.clientes.some((c) => normalizarCliente(c) === alvo);
+    if (d.exceto) return !d.exceto.some((c) => normalizarCliente(c) === alvo);
+    return true;
+  });
 }
 
 // ---------------------------------------------------------------------------
