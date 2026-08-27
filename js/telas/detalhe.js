@@ -9,7 +9,7 @@
 import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS, RESPONSAVEIS_ADM, CLIENTES_CONHECIDOS, CARGOS_CONHECIDOS } from '../schema.js';
 import { recalcular, alertas, paraInputDate, CAMPOS_DERIVADOS } from '../regras.js';
 import { salvarRegistro, excluirRegistro, historicoDe, dataEntradaDe, estado } from '../dados/index.js';
-import { el, limpar, documentoDe, confirmarConflito, forcarMaiusculo } from '../ui.js';
+import { el, limpar, documentoDe, confirmarConflito, forcarMaiusculo, corDoRotulo, rotulosDeEmpresas } from '../ui.js';
 
 const nos = {};
 let original = null;   // registro como veio da fonte
@@ -199,6 +199,22 @@ function campoClienteAtual() {
 
 function campoCargo() {
   return campoSelectComOpcoesFixas('Cargo / Função', 'Cargo / Função', CARGOS_CONHECIDOS);
+}
+
+/**
+ * Rotulos coloridos (mesmo estilo do cartao do Kanban) pras empresas em
+ * "Clientes / projetos em que já atuou" - so' visual por enquanto, sem
+ * clique. O clique pra abrir o card daquela integracao especifica depende
+ * de cada integracao virar um card proprio (ainda nao planejado) - pedido
+ * da Sara, 27/08/2026.
+ */
+function secaoRotulosEmpresas() {
+  const empresas = rotulosDeEmpresas(rascunho);
+  return el('div', { class: 'largo', id: 'rotulosEmpresasFicha' }, empresas.length
+    ? [el('div', { class: 'cartao-rotulos' }, empresas.map((nome) =>
+        el('span', { class: `rotulo-empresa cor-${corDoRotulo(nome)}`, texto: nome, title: nome })
+      ))]
+    : []);
 }
 
 function campoCalculado(rotulo, texto, { largo = false } = {}) {
@@ -419,6 +435,7 @@ function desenhar() {
       el('h3', { texto: 'Observações' }),
       el('div', { class: 'grade' }, [
         campoTexto('Clientes / projetos em que já atuou', 'Clientes / projetos em que já atuou', { largo: true }),
+        secaoRotulosEmpresas(),
         (() => {
           const ta = el('textarea', { texto: rascunho['Observações'] ?? '' });
           ta.addEventListener('change', () => definir('Observações', ta.value));
@@ -436,6 +453,7 @@ function desenhar() {
 function desenharDerivados() {
   substituir('secaoAlertas', secaoAlertas());
   substituir('secaoCalculados', secaoCalculados());
+  substituir('rotulosEmpresasFicha', secaoRotulosEmpresas());
 
   const docs = document.getElementById('secaoDocumentos');
   if (docs) {

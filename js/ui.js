@@ -44,6 +44,27 @@ export function plural(n, singular, pluralPalavra) {
   return `${n} ${n === 1 ? singular : pluralPalavra}`;
 }
 
+const QTD_CORES_ROTULO = 8;
+
+/**
+ * Cor sempre igual pro mesmo nome de empresa/cliente - hash simples, sem
+ * precisar guardar mapeamento em lugar nenhum. Compartilhado entre o cartao
+ * do Kanban e a ficha, pra' a mesma empresa sair com a mesma cor nas duas telas.
+ */
+export function corDoRotulo(nome) {
+  let hash = 0;
+  for (let i = 0; i < nome.length; i++) hash = (hash * 31 + nome.charCodeAt(i)) >>> 0;
+  return hash % QTD_CORES_ROTULO;
+}
+
+/** "Clientes / projetos em que já atuou" separado em nomes individuais - um rótulo por empresa. */
+export function rotulosDeEmpresas(reg) {
+  return String(reg['Clientes / projetos em que já atuou'] || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 /**
  * Nome da pasta do colaborador (CPF/CNPJ_Nome_completo) a partir do registro
  * - mesma formatacao do gerador de pasta (js/telas/gerador-pasta.js) e da

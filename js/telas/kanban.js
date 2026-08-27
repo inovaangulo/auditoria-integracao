@@ -2,7 +2,7 @@
 
 import { COLUNAS_KANBAN } from '../schema.js';
 import { porColuna, alertas, documentosFaltantes, mudarStatus, chave, estado } from '../dados/index.js';
-import { el, limpar, documentoDe, plural, confirmarConflito, abrirPastaColaborador } from '../ui.js';
+import { el, limpar, documentoDe, plural, confirmarConflito, abrirPastaColaborador, corDoRotulo, rotulosDeEmpresas } from '../ui.js';
 
 let aoAbrirDetalhe = () => {};
 let aoErro = () => {};
@@ -14,23 +14,6 @@ export function configurar({ abrirDetalhe, erro }) {
 
 /** Cartao arrastado no momento — o drop precisa saber de quem se trata. */
 let arrastando = null;
-
-const QTD_CORES_ROTULO = 8;
-
-/** Cor sempre igual pro mesmo nome de empresa - hash simples, sem precisar guardar mapeamento em lugar nenhum. */
-function corDoRotulo(nome) {
-  let hash = 0;
-  for (let i = 0; i < nome.length; i++) hash = (hash * 31 + nome.charCodeAt(i)) >>> 0;
-  return hash % QTD_CORES_ROTULO;
-}
-
-/** "Clientes / projetos em que já atuou" separado em nomes individuais - um rótulo por empresa. */
-function rotulosDeEmpresas(reg) {
-  return String(reg['Clientes / projetos em que já atuou'] || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
 
 function montarCartao(reg) {
   const faltando = documentosFaltantes(reg);
