@@ -138,6 +138,20 @@ export function normalizarCliente(nome) {
 }
 
 /**
+ * Clientes/contratos conhecidos, pra' oferecer num menu em vez de digitar
+ * (evita grafia diferente pro mesmo cliente, o que faria os documentos
+ * exigidos por cliente - `clientes`/`exceto` em DOCUMENTOS - não baterem).
+ * Fonte: DOCUMENTOS DE INTEGRAÇÃO.docx (ADM) + Trivia, conferido com a Sara
+ * em 26/08/2026. Ordem alfabética.
+ */
+export const CLIENTES_CONHECIDOS = [
+  'Alcoa', 'Axia', 'Brasil PCH', 'Copel', 'EcoRioMinas', 'Ecovias Capixaba',
+  'Ecovias do Araguaia', 'Elovias', 'Engetrens', 'EPR', 'Motiva Pantanal',
+  'Nova 364', 'Nova 381', 'Rota Verde', 'Trivia', 'Via Araucaria', 'Via Brasil',
+  'Way262',
+];
+
+/**
  * Sigla (TIPODOC) -> rotulo pra mostrar num menu (ex.: gerador de pasta).
  * Quando um campo aceita mais de uma sigla (RG ou CNH), cada sigla usa o
  * proprio nome como rotulo em vez do rotulo combinado do campo - senao "RG"

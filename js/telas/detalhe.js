@@ -6,7 +6,7 @@
  * parar na planilha compartilhada.
  */
 
-import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS, RESPONSAVEIS_ADM } from '../schema.js';
+import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS, RESPONSAVEIS_ADM, CLIENTES_CONHECIDOS } from '../schema.js';
 import { recalcular, alertas, paraInputDate } from '../regras.js';
 import { salvarRegistro, excluirRegistro, historicoDe, dataEntradaDe, estado } from '../dados/index.js';
 import { el, limpar, documentoDe, confirmarConflito } from '../ui.js';
@@ -167,6 +167,28 @@ function campoResponsavelAdm() {
   return el('label', { class: 'campo' }, [el('span', { texto: 'Responsável ADM' }), select]);
 }
 
+/**
+ * Select do Cliente atual: opções vêm de CLIENTES_CONHECIDOS (schema.js), pra
+ * evitar grafia diferente pro mesmo cliente (o que faria o checklist de
+ * documentos por cliente não bater). Se o valor atual não bater com ninguém
+ * da lista (dado antigo, digitado à mão antes desta mudança, ou cliente novo
+ * ainda não cadastrado na lista), mostra uma opção extra pra não sumir com o dado.
+ */
+function campoClienteAtual() {
+  const atual = rascunho['Cliente atual'] || '';
+  const opcoes = [...CLIENTES_CONHECIDOS];
+  if (atual && !opcoes.includes(atual)) opcoes.push(atual);
+
+  const select = el('select', { 'data-campo': 'Cliente atual' });
+  select.append(el('option', { value: '', texto: 'Selecione…', selected: !atual }));
+  for (const c of opcoes) {
+    const rotulo = !CLIENTES_CONHECIDOS.includes(c) ? `${c} (fora da lista)` : c;
+    select.append(el('option', { value: c, texto: rotulo, selected: atual === c }));
+  }
+  select.addEventListener('change', () => { select.classList.remove('erro'); definir('Cliente atual', select.value); });
+  return el('label', { class: 'campo' }, [el('span', { texto: 'Cliente atual' }), select]);
+}
+
 function campoCalculado(rotulo, texto, { largo = false } = {}) {
   return el('label', { class: `campo${largo ? ' largo' : ''}` }, [
     el('span', { texto: rotulo }),
@@ -315,7 +337,7 @@ function desenhar() {
         campoTexto('CPF', 'CPF'),
         campoTexto('CNPJ (se PJ)', 'CNPJ (se PJ)'),
         campoSelect('Vínculo', 'Tipo', ['', 'CLT', 'PJ']),
-        campoTexto('Cliente atual', 'Cliente atual'),
+        campoClienteAtual(),
         campoTexto('Cargo / Função', 'Cargo / Função'),
         campoResponsavelAdm(),
         campoTexto('WhatsApp contato', 'WhatsApp contato'),
