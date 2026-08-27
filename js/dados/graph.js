@@ -259,6 +259,28 @@ export class FonteSharePoint {
   }
 
   /**
+   * So' acha a pasta do colaborador (sem criar) - pro link "abrir pasta" no
+   * Kanban/Lista, onde nao faz sentido criar nada, so' abrir se ja' existir.
+   * Devolve null se nao existir (em vez de lancar erro), pra' quem chamou
+   * decidir como avisar.
+   */
+  async acharPastaColaborador(nomePasta) {
+    const { siteId, pastaBase } = CONFIG.pastasColaboradores;
+    const token = await this.token();
+    const caminho = codificarCaminho(`${pastaBase}/${nomePasta}`);
+
+    const resp = await fetch(`${GRAFO}/sites/${siteId}/drive/root:/${caminho}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (resp.ok) {
+      const item = await resp.json();
+      return { webUrl: item.webUrl };
+    }
+    if (resp.status === 404) return null;
+    throw new Error(traduzirErroPasta(resp.status, await resp.text()));
+  }
+
+  /**
    * Envia um arquivo (File do <input>) pra dentro da pasta do colaborador -
    * upload simples para arquivos pequenos, ou em fatias (sessao de upload)
    * para os maiores que 4 MB, que o upload simples do Graph nao aceita

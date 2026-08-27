@@ -9,10 +9,21 @@
 import { CONFIG, MODO_SHAREPOINT } from '../config.js';
 import { FonteLocal } from './local.js';
 import { FonteSharePoint } from './graph.js';
-import { recalcular, alertas, documentosFaltantes, CAMPOS_DERIVADOS } from '../regras.js';
+import { recalcular, alertas, documentosFaltantes, paraInputDate, CAMPOS_DERIVADOS } from '../regras.js';
 import { colunaDoStatus, COLUNAS } from '../schema.js';
 
 const CAMPOS_COMPARAVEIS = COLUNAS.filter((c) => !CAMPOS_DERIVADOS.includes(c));
+
+// Campos de data podem chegar da planilha como numero serial do Excel, ISO,
+// ou "dd/mm/aaaa" dependendo de quem/como a celula foi escrita - comparar a
+// string bruta (`String(valor)`) confunde representacao diferente do MESMO
+// dia com "mudanca de verdade", poluindo o historico com entradas tipo
+// "— → 46260" que ninguem editou de proposito. Normaliza pra AAAA-MM-DD
+// antes de comparar. Pedido da Sara, 27/08/2026.
+const CAMPOS_DATA = new Set([
+  'Data de entrada', 'Data envio p/ assinatura', 'Data cadastro empresa Wehandle (PJ)',
+  'Data envio p/ análise Wehandle', 'Data aprovação', 'Data integração agendada',
+]);
 
 const CHAVE_HISTORICO = 'auditoria_integracao::historico';
 
@@ -228,8 +239,11 @@ async function registrarHistorico(novo, antigo) {
     // sao uma decisao de ninguem, so' consequencia de outro campo real ter
     // mudado - pedido da Sara, 27/08/2026.
     if (campo.startsWith('__') || CAMPOS_DERIVADOS.includes(campo)) continue;
-    const de = String(antigo[campo] ?? '');
-    const para = String(novo[campo] ?? '');
+    // Data: compara pelo dia normalizado (AAAA-MM-DD), nao pela representacao
+    // bruta - a mesma data pode chegar como numero serial do Excel, ISO ou
+    // "dd/mm/aaaa" dependendo da origem, sem ninguem ter editado nada de verdade.
+    const de = CAMPOS_DATA.has(campo) ? paraInputDate(antigo[campo]) : String(antigo[campo] ?? '');
+    const para = CAMPOS_DATA.has(campo) ? paraInputDate(novo[campo]) : String(novo[campo] ?? '');
     if (de !== para) mudancas.push({ campo, de, para });
   }
   if (!mudancas.length) return;

@@ -174,6 +174,11 @@ export const CLIENTES_CONHECIDOS = [
   'Way262',
 ];
 
+/** Cargos/funções conhecidos, pra oferecer num menu em vez de digitar. Pedido da Sara, 27/08/2026. */
+export const CARGOS_CONHECIDOS = [
+  'Coordenador(a)', 'Gerente', 'Supervisor(a)', 'Analista Socioambiental', 'Agente de Campo',
+];
+
 /**
  * Sigla (TIPODOC) -> rotulo pra mostrar num menu (ex.: gerador de pasta).
  * Quando um campo aceita mais de uma sigla (RG ou CNH), cada sigla usa o

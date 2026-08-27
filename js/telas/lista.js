@@ -5,9 +5,9 @@
  * codificada por cor no quadro exista tambem como texto.
  */
 
-import { registrosFiltrados, alertas, documentosFaltantes, dataEntradaDe } from '../dados/index.js';
+import { registrosFiltrados, alertas, documentosFaltantes, dataEntradaDe, estado } from '../dados/index.js';
 import { formatarData } from '../regras.js';
-import { el, limpar, documentoDe } from '../ui.js';
+import { el, limpar, documentoDe, abrirPastaColaborador } from '../ui.js';
 
 let aoAbrirDetalhe = () => {};
 
@@ -15,19 +15,19 @@ export function configurar({ abrirDetalhe }) {
   aoAbrirDetalhe = abrirDetalhe;
 }
 
-const COLUNAS_TABELA = [
-  'Colaborador', 'Documento', 'Vínculo', 'Cliente', 'Cargo', 'Entrada',
-  'Status', 'Documentação', 'Faltando', 'Alertas', 'Envio assinatura', 'Responsável',
-];
+// "Pasta" so' entra se a fonte suportar (SharePoint conectado) - no modo
+// local nao ha' o que abrir.
+function colunasTabela() {
+  const base = [
+    'Colaborador', 'Documento', 'Vínculo', 'Cliente', 'Cargo', 'Entrada',
+    'Status', 'Documentação', 'Faltando', 'Alertas', 'Envio assinatura', 'Responsável',
+  ];
+  return estado.fonte?.acharPastaColaborador ? [...base, 'Pasta'] : base;
+}
 
 function pilula(texto, fundo, cor) {
   return el('span', { class: 'pilula', style: `background:${fundo};color:${cor}`, texto });
 }
-
-// Link direto pra pasta DOCUMENTOS_INTEGRACAO no SharePoint (mesmo link do
-// links.html/links-adm.html) - pedido da Sara, 27/08/2026: um jeito rapido de
-// abrir as pastas dos colaboradores sem passar pela pagina de links.
-const LINK_PASTAS_SHAREPOINT = 'https://angulosocialbr.sharepoint.com/:f:/r/sites/admin/Shared%20Documents/DOCUMENTOS_INTEGRACAO?d=w1c9fa65fafaa447b8dbbe47a90ca980e&csf=1&web=1&e=YqDH9q';
 
 export function renderizar(container) {
   const regs = registrosFiltrados();
@@ -61,6 +61,13 @@ export function renderizar(container) {
         : el('span', { texto: '—' })]),
       el('td', { texto: formatarData(r['Data envio p/ assinatura']) || '—' }),
       el('td', { texto: r['Responsável ADM'] || '—' }),
+      estado.fonte?.acharPastaColaborador
+        ? el('td', {}, [el('button', {
+            class: 'botao-pasta-lista', type: 'button', title: 'Abrir pasta no SharePoint',
+            'aria-label': 'Abrir pasta no SharePoint', texto: '📁',
+            onclick: (e) => { e.stopPropagation(); abrirPastaColaborador(r, estado.fonte); },
+          })])
+        : null,
     ]);
 
     linha.addEventListener('click', () => aoAbrirDetalhe(r));
@@ -71,15 +78,9 @@ export function renderizar(container) {
   }
 
   container.append(
-    el('div', { class: 'lista-topo' }, [
-      el('a', {
-        class: 'btn-secundario', href: LINK_PASTAS_SHAREPOINT, target: '_blank', rel: 'noopener',
-        texto: '📁 Abrir pastas dos colaboradores no SharePoint',
-      }),
-    ]),
     el('div', { class: 'tabela-rolagem' }, [
       el('table', { class: 'lista' }, [
-        el('thead', {}, [el('tr', {}, COLUNAS_TABELA.map((c) => el('th', { texto: c })))]),
+        el('thead', {}, [el('tr', {}, colunasTabela().map((c) => el('th', { texto: c })))]),
         corpo,
       ]),
     ])

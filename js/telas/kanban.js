@@ -2,7 +2,7 @@
 
 import { COLUNAS_KANBAN } from '../schema.js';
 import { porColuna, alertas, documentosFaltantes, mudarStatus, chave, estado } from '../dados/index.js';
-import { el, limpar, documentoDe, plural, confirmarConflito } from '../ui.js';
+import { el, limpar, documentoDe, plural, confirmarConflito, abrirPastaColaborador } from '../ui.js';
 
 let aoAbrirDetalhe = () => {};
 let aoErro = () => {};
@@ -37,12 +37,15 @@ function montarCartao(reg) {
   const listaAlertas = alertas(reg);
   const empresas = rotulosDeEmpresas(reg);
 
+  // Cliente atual vem primeiro na linha de rotulos (topo do cartao, antes do
+  // nome) - empresas anteriores (integracoes ja' concluidas) vem depois, se
+  // houver. Pedido da Sara, 27/08/2026.
+  const rotulosTopo = [
+    ...(reg['Cliente atual'] ? [reg['Cliente atual']] : []),
+    ...empresas,
+  ];
+
   const badges = el('div', { class: 'cartao-badges' }, [
-    reg['Cliente atual']
-      ? el('span', {
-          class: `rotulo-empresa cor-${corDoRotulo(reg['Cliente atual'])}`, texto: reg['Cliente atual'],
-        })
-      : null,
     el('span', { class: 'badge tipo', texto: reg['Tipo'] || 'Sem vínculo' }),
     faltando.length
       ? el('span', {
@@ -69,8 +72,8 @@ function montarCartao(reg) {
     role: 'button',
     'aria-label': `Abrir ficha de ${reg['Nome completo']}`,
   }, [
-    empresas.length
-      ? el('div', { class: 'cartao-rotulos' }, empresas.map((nome) =>
+    rotulosTopo.length
+      ? el('div', { class: 'cartao-rotulos' }, rotulosTopo.map((nome) =>
           el('span', { class: `rotulo-empresa cor-${corDoRotulo(nome)}`, texto: nome, title: nome })
         ))
       : null,
@@ -78,6 +81,13 @@ function montarCartao(reg) {
     el('div', { class: 'cartao-linha', texto: documentoDe(reg) }),
     el('div', { class: 'cartao-linha', texto: reg['Cargo / Função'] || 'Cargo não informado' }),
     badges,
+    estado.fonte?.acharPastaColaborador
+      ? el('button', {
+          class: 'botao-pasta', type: 'button', title: 'Abrir pasta no SharePoint',
+          'aria-label': 'Abrir pasta no SharePoint', texto: '📁',
+          onclick: (e) => { e.stopPropagation(); abrirPastaColaborador(reg, estado.fonte); },
+        })
+      : null,
   ]);
 
   cartao.addEventListener('click', () => aoAbrirDetalhe(reg));
