@@ -17,7 +17,7 @@
 
 import { estado } from '../dados/index.js';
 import { OPCOES_TIPODOC } from '../schema.js';
-import { el, limpar } from '../ui.js';
+import { el, limpar, forcarMaiusculo } from '../ui.js';
 
 const nos = {};
 let arquivos = []; // { id, arquivo: File, tipo: '', tipoCustom: '', status: '' }
@@ -47,8 +47,12 @@ function tipoEfetivo(item) {
 export function configurar() {
   nos.modal = document.getElementById('modalPasta');
   nos.fundo = document.getElementById('fundoModalPasta');
+  nos.vinculoSecao = document.getElementById('pastaVinculoSecao');
+  nos.vinculo = document.getElementById('pastaVinculo');
+  nos.nomeSecao = document.getElementById('pastaNomeSecao');
   nos.nome = document.getElementById('pastaNome');
   nos.doc = document.getElementById('pastaDoc');
+  nos.docRotulo = document.getElementById('pastaDocRotulo');
   nos.aviso = document.getElementById('pastaAviso');
   nos.saida = document.getElementById('pastaSaida');
   nos.btnCopiar = document.getElementById('btnCopiarPasta');
@@ -70,7 +74,8 @@ export function configurar() {
     if (e.key === 'Escape' && !nos.modal.hidden) fechar();
   });
 
-  nos.nome.addEventListener('input', atualizar);
+  nos.vinculo.addEventListener('change', atualizar);
+  nos.nome.addEventListener('input', () => { forcarMaiusculo(nos.nome); atualizar(); });
   nos.doc.addEventListener('input', atualizar);
   nos.btnCopiar.addEventListener('click', copiar);
 
@@ -90,6 +95,7 @@ export function configurar() {
 }
 
 export function abrir() {
+  nos.vinculo.value = '';
   nos.nome.value = '';
   nos.doc.value = '';
   arquivos = [];
@@ -116,8 +122,17 @@ function definirModo(novoModo) {
   nos.modoNovo.classList.toggle('ativo', modo === 'novo');
   nos.modoExistente.classList.toggle('ativo', modo === 'existente');
   nos.buscaSecao.hidden = modo !== 'existente';
+  // Vínculo já é um dado fixo do colaborador existente - não faz sentido
+  // pedir de novo, só quando ainda não existe cadastro nenhum.
+  nos.vinculoSecao.hidden = modo === 'existente';
+  // O nome ja' aparece no resultado da busca ao selecionar - repetir o campo
+  // e' redundante nesse modo (o campo continua existindo por baixo, so' nao
+  // aparece pra pessoa).
+  nos.nomeSecao.hidden = modo === 'existente';
+  nos.btnCriar.textContent = textoBotaoCriar();
   nos.buscaInput.value = '';
   limpar(nos.buscaResultados);
+  nos.vinculo.value = '';
   nos.nome.value = '';
   nos.doc.value = '';
   nos.nome.readOnly = modo === 'existente';
@@ -150,7 +165,7 @@ function renderizarBuscaResultados() {
     nos.buscaResultados.append(el('button', {
       type: 'button', class: 'pasta-busca-item',
       onclick: () => {
-        nos.nome.value = reg['Nome completo'] || '';
+        nos.nome.value = (reg['Nome completo'] || '').toUpperCase();
         nos.doc.value = doc;
         nos.buscaInput.value = reg['Nome completo'] || '';
         limpar(nos.buscaResultados);
@@ -191,23 +206,45 @@ function definirAviso(texto, tom) {
 function atualizar() {
   const nome = nos.nome.value.trim();
   const digitos = apenasDigitos(nos.doc.value);
-  const completo = digitos.length === 11 || digitos.length === 14;
 
-  if (!nome && !digitos) {
-    definirAviso('Preencha o nome completo e o CPF ou CNPJ.', 'atencao');
+  // Modo "existente": o campo ja' vem preenchido, so-leitura, de um registro
+  // real - so' confere se o formato bate com CPF ou CNPJ, sem pedir vinculo
+  // de novo (a secao fica escondida - ver definirModo).
+  if (modo === 'existente') {
+    nos.docRotulo.textContent = 'CPF ou CNPJ';
+    const completo = digitos.length === 11 || digitos.length === 14;
+    if (!nome || !completo) definirAviso('Busque e selecione um colaborador da lista.', 'atencao');
+    else definirAviso(digitos.length === 11 ? 'CPF — colaborador CLT.' : 'CNPJ — colaborador PJ.', 'ok');
+    montarSaida(nome, digitos, Boolean(nome) && completo);
+    return;
+  }
+
+  const vinculo = nos.vinculo.value;
+  const esperado = vinculo === 'CLT' ? 11 : vinculo === 'PJ' ? 14 : null;
+  nos.docRotulo.textContent = vinculo === 'CLT' ? 'CPF' : vinculo === 'PJ' ? 'CNPJ' : 'CPF ou CNPJ';
+
+  let pronto = false;
+  if (!vinculo) {
+    definirAviso('Selecione se é CLT ou PJ.', 'atencao');
+  } else if (!nome && !digitos) {
+    definirAviso(`Preencha o nome completo e o ${vinculo === 'CLT' ? 'CPF' : 'CNPJ'}.`, 'atencao');
   } else if (!nome) {
     definirAviso('Falta o nome completo.', 'atencao');
-  } else if (!completo) {
+  } else if (digitos.length !== esperado) {
     definirAviso(
-      `A sincronização só reconhece CPF (11 dígitos) ou CNPJ (14 dígitos) — `
+      `${vinculo} usa ${vinculo === 'CLT' ? 'CPF (11 dígitos)' : 'CNPJ (14 dígitos)'} — `
       + `agora tem ${digitos.length} dígito(s). Confira antes de criar a pasta.`,
       'atencao'
     );
   } else {
-    definirAviso(digitos.length === 11 ? 'CPF — colaborador CLT.' : 'CNPJ — colaborador PJ.', 'ok');
+    definirAviso(`${vinculo === 'CLT' ? 'CPF' : 'CNPJ'} confere com ${vinculo}.`, 'ok');
+    pronto = true;
   }
 
-  const pronto = Boolean(nome) && completo;
+  montarSaida(nome, digitos, pronto);
+}
+
+function montarSaida(nome, digitos, pronto) {
   if (pronto) {
     // Mesma regra da sincronização: so' a barra do CNPJ vira "-", espaços do
     // nome viram "_" - ver nomePasta() em sincronizar-documentos.mjs.
@@ -285,6 +322,11 @@ function desenharListaArquivos() {
   }
 }
 
+/** Rótulo do botão de ação - em "existente" a pasta já existe, então é só envio de arquivo. */
+function textoBotaoCriar() {
+  return modo === 'existente' ? 'Upload de arquivos' : 'Criar pasta no SharePoint';
+}
+
 function atualizarBotaoCriar() {
   if (!nos.btnCriar) return;
   const prontoDados = Boolean(nos.saida.value);
@@ -296,7 +338,7 @@ async function criarPasta() {
   if (criando || !estado.fonte?.criarOuAcharPastaColaborador) return;
   criando = true;
   nos.btnCriar.disabled = true;
-  nos.btnCriar.textContent = 'Criando pasta…';
+  nos.btnCriar.textContent = modo === 'existente' ? 'Enviando…' : 'Criando pasta…';
   limpar(nos.resultado);
   desenharListaArquivos();
 
@@ -334,7 +376,7 @@ async function criarPasta() {
     nos.resultado.append(el('p', { class: 'alerta atencao', texto: err.message }));
   } finally {
     criando = false;
-    nos.btnCriar.textContent = 'Criar pasta no SharePoint';
+    nos.btnCriar.textContent = textoBotaoCriar();
     desenharListaArquivos();
     atualizarBotaoCriar();
   }

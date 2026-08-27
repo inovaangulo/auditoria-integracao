@@ -80,7 +80,7 @@ const FAQ = [
   },
   {
     chaves: ['status do documento', 'conferido automaticamente', 'conferido manualmente', 'pendente de conferencia', 'nao recebido', 'nao se aplica', 'o que significa cada status', 'cores do documento'],
-    resposta: 'Cada documento tem um destes status: "Conferido automaticamente" (o robô confirmou que o conteúdo é da pessoa certa), "Conferido manualmente" (alguém do ADM conferiu pela ficha e confirmou — isso também dispensa qualquer alerta de verificação daquele documento), "Pendente de conferência manual" (o arquivo já está na pasta, só falta confirmar — já conta como documentação completa), "Não recebido" e "Não se aplica". Pra confirmar manualmente, é só trocar o valor no próprio dropdown na ficha do colaborador.',
+    resposta: 'Cada documento tem um destes status: "Conferido automaticamente" (o robô confirmou que o conteúdo é da pessoa certa — esse aqui só a sincronização grava, não dá pra escolher na mão, fica travado no menu), "Conferido manualmente" (alguém do ADM conferiu pela ficha e confirmou — isso também dispensa qualquer alerta de verificação daquele documento), "Pendente de conferência manual" (o arquivo já está na pasta, só falta confirmar — já conta como documentação completa), "Não recebido" e "Não se aplica". Pra confirmar manualmente que um documento está certo, escolha "Conferido manualmente" no dropdown da ficha.',
   },
   {
     chaves: ['adicionar colaborador', 'novo colaborador', 'cadastrar colaborador', 'incluir colaborador', 'criar colaborador', 'como cadastro'],
@@ -95,8 +95,8 @@ const FAQ = [
     resposta: 'Dentro da pasta do colaborador, o nome do arquivo deve terminar com a sigla do tipo de documento — ex.: "ASO.pdf", "RG.pdf", "CTPS.pdf". Não precisa repetir CPF/Nome no arquivo, já que a pasta em volta já identifica de quem é. Fazendo isso pelo botão "Criar pasta de colaborador", o app já nomeia certinho sozinho.',
   },
   {
-    chaves: ['gerador de pasta', 'gerar nome de pasta', 'criar pasta de colaborador', 'botao criar pasta', 'colaborador existente', 'subir documentos', 'adicionar documentos', 'outro tipo de documento', 'link da pasta'],
-    resposta: 'O botão "Criar pasta de colaborador" (topo do app) cria a pasta de verdade no SharePoint (ou reaproveita se já existir) e sobe os documentos direto — escolhe o tipo de cada arquivo num menu (ASO, RG, CTPS etc., com opção "Outro" pra digitar um tipo fora da lista) e mostra o link da pasta no SharePoint ao final. Também dá pra buscar um colaborador já existente (por nome, CPF ou CNPJ) pra só completar/adicionar documentos numa pasta que já existe, sem digitar tudo de novo.',
+    chaves: ['gerador de pasta', 'gerar nome de pasta', 'criar pasta de colaborador', 'botao criar pasta', 'colaborador existente', 'subir documentos', 'adicionar documentos', 'outro tipo de documento', 'link da pasta', 'upload de arquivos', 'vinculo na pasta'],
+    resposta: 'O botão "Criar pasta de colaborador" (topo do app) tem dois modos. "Novo colaborador": escolhe o vínculo (CLT ou PJ) primeiro — o campo de CPF/CNPJ passa a exigir a quantidade certa de dígitos pra esse vínculo (11 pra CLT, 14 pra PJ) — digita nome e documento, escolhe o tipo de cada arquivo num menu (ASO, RG, CTPS etc., com opção "Outro" pra digitar um tipo fora da lista) e o botão "Criar pasta no SharePoint" cria a pasta de verdade (ou reaproveita se já existir) e sobe tudo. "Colaborador existente": busca por nome, CPF ou CNPJ pra só completar/adicionar documentos numa pasta que já existe, sem digitar tudo de novo — nesse modo o botão vira "Upload de arquivos". Nos dois casos, mostra o link da pasta no SharePoint ao final.',
   },
   {
     chaves: ['e-mail de alerta', 'resumo diario', 'recebo email', 'notificacao por email', 'alerta por email'],

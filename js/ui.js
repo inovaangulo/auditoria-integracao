@@ -44,6 +44,18 @@ export function plural(n, singular, pluralPalavra) {
   return `${n} ${n === 1 ? singular : pluralPalavra}`;
 }
 
+/**
+ * Forca o valor de um input pra maiuscula, preservando a posicao do cursor
+ * (maiusculizar nao muda o tamanho do texto, entao só reaplica a selecao).
+ * Usado nos campos de nome (padronização pedida pela Sara, 26/08/2026).
+ */
+export function forcarMaiusculo(input) {
+  const inicio = input.selectionStart;
+  const fim = input.selectionEnd;
+  input.value = input.value.toUpperCase();
+  if (inicio !== null && fim !== null) input.setSelectionRange(inicio, fim);
+}
+
 /** Pergunta se sobrescreve quando `salvarRegistro`/`mudarStatus` recusa por edicao simultanea (err.conflito). */
 export function confirmarConflito(err) {
   return Boolean(err?.conflito) && window.confirm(`${err.message}\n\nClique OK para sobrescrever, ou Cancelar pra revisar antes.`);

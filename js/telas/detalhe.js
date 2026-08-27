@@ -7,9 +7,9 @@
  */
 
 import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS, RESPONSAVEIS_ADM, CLIENTES_CONHECIDOS } from '../schema.js';
-import { recalcular, alertas, paraInputDate } from '../regras.js';
+import { recalcular, alertas, paraInputDate, CAMPOS_DERIVADOS } from '../regras.js';
 import { salvarRegistro, excluirRegistro, historicoDe, dataEntradaDe, estado } from '../dados/index.js';
-import { el, limpar, documentoDe, confirmarConflito } from '../ui.js';
+import { el, limpar, documentoDe, confirmarConflito, forcarMaiusculo } from '../ui.js';
 
 const nos = {};
 let original = null;   // registro como veio da fonte
@@ -89,6 +89,8 @@ function definir(campo, valor) {
   rascunho = recalcular(rascunho);
   nos.aviso.textContent = '';
   if (CAMPOS_QUE_MUDAM_CHECKLIST.has(campo)) substituir('secaoDocumentos', secaoDocumentos());
+  // "Tipo" tambem decide se o campo "Data cadastro Wehandle (PJ)" aparece.
+  if (campo === 'Tipo') substituir('secaoPrazos', secaoPrazos());
   desenharDerivados();
 }
 
@@ -116,13 +118,16 @@ function limparAlertaDeConteudoDoDoc(doc) {
 // Montagem
 // ---------------------------------------------------------------------------
 
-function campoTexto(rotulo, campo, { tipo = 'text', largo = false } = {}) {
+function campoTexto(rotulo, campo, { tipo = 'text', largo = false, maiusculo = false } = {}) {
   const input = el('input', {
     type: tipo,
     value: tipo === 'date' ? paraInputDate(rascunho[campo]) : (rascunho[campo] ?? ''),
     'data-campo': campo,
   });
-  input.addEventListener('input', () => input.classList.remove('erro'));
+  input.addEventListener('input', () => {
+    input.classList.remove('erro');
+    if (maiusculo) forcarMaiusculo(input);
+  });
   input.addEventListener('change', () => definir(campo, input.value));
   return el('label', { class: `campo${largo ? ' largo' : ''}` }, [el('span', { texto: rotulo }), input]);
 }
@@ -209,6 +214,31 @@ function secaoAlertas() {
   ]);
 }
 
+/** Data de cadastro Wehandle so' existe pra PJ - sem vinculo definido, mostra as duas (nao ha' o que esconder ainda). */
+function secaoPrazos() {
+  const tipo = rascunho['Tipo'];
+  return el('div', { class: 'secao', id: 'secaoPrazos' }, [
+    el('h3', { texto: 'Situação e prazos' }),
+    el('div', { class: 'grade' }, [
+      campoSelect('Status atual', 'Status atual', ['', ...STATUS_VALIDOS], { largo: true }),
+      campoTexto('Data envio para assinatura', 'Data envio p/ assinatura', { tipo: 'date' }),
+      campoTexto('Data envio para análise Wehandle', 'Data envio p/ análise Wehandle', { tipo: 'date' }),
+      tipo !== 'CLT'
+        ? campoTexto('Data cadastro empresa Wehandle (PJ)', 'Data cadastro empresa Wehandle (PJ)', { tipo: 'date' })
+        : null,
+      campoTexto('Data aprovação', 'Data aprovação', { tipo: 'date' }),
+      campoTexto('Data integração agendada', 'Data integração agendada', { tipo: 'date' }),
+      campoTexto('Resultado análise', 'Resultado análise'),
+      campoTexto('Motivo reprovação', 'Motivo reprovação', { largo: true }),
+      campoTexto(
+        'Alerta de verificação de conteúdo (apague depois de conferir o documento)',
+        'Alerta verificação de conteúdo',
+        { largo: true }
+      ),
+    ]),
+  ]);
+}
+
 function secaoDocumentos() {
   const docs = documentosDoVinculo(rascunho['Tipo'], rascunho['Cliente atual']);
   const obrigatorios = docs.filter((d) => !d.condicional);
@@ -227,10 +257,29 @@ function secaoDocumentos() {
     const select = el('select', { 'data-v': valor });
     select.append(el('option', { value: '', texto: 'Não recebido', selected: valor === '' }));
     for (const v of VALORES_DOC) {
-      select.append(el('option', { value: v, texto: v, selected: valor === v }));
+      // "Conferido automaticamente" e' selo de que o robo conferiu o
+      // conteudo - so' a sincronizacao grava esse valor. Fica desabilitada
+      // no menu (nao escondida, pra continuar mostrando certo quando ja' e'
+      // o valor atual), pra ninguem marcar isso na mao sem ter conferido de
+      // verdade - pedido da Sara, 26/08/2026.
+      const bloqueado = v === 'Conferido automaticamente' && valor !== v;
+      select.append(el('option', {
+        value: v, texto: bloqueado ? `${v} (só a sincronização define)` : v,
+        selected: valor === v, disabled: bloqueado,
+      }));
     }
     select.addEventListener('change', () => {
       select.setAttribute('data-v', select.value);
+      // A troca em si nao redesenha essa linha (so' o resumo, via
+      // desenharDerivados) - reavalia aqui pra "Conferido automaticamente"
+      // travar assim que deixar de ser o valor atual, mesmo sem reabrir a ficha.
+      const opConfAuto = [...select.options].find((o) => o.value === 'Conferido automaticamente');
+      if (opConfAuto) {
+        const aindaEBloqueado = select.value !== 'Conferido automaticamente';
+        opConfAuto.disabled = aindaEBloqueado;
+        opConfAuto.textContent = aindaEBloqueado
+          ? 'Conferido automaticamente (só a sincronização define)' : 'Conferido automaticamente';
+      }
       definir(d.campo, select.value);
       // Escolher "Conferido manualmente" e' a acao que resolve o alerta de
       // verificacao de conteudo desse documento - nao precisa mais apagar
@@ -264,7 +313,9 @@ function secaoCalculados() {
     el('div', { class: 'grade' }, [
       campoCalculado('Documentos completos?', rascunho['Documentos completos?'] || 'Não'),
       campoCalculado('Dias aguardando assinatura', rascunho['Dias aguardando assinatura']),
-      campoCalculado('Dias sem confirmação (PJ)', rascunho['Dias sem confirmação (PJ)']),
+      rascunho['Tipo'] !== 'CLT'
+        ? campoCalculado('Dias sem confirmação (PJ)', rascunho['Dias sem confirmação (PJ)'])
+        : null,
       campoCalculado('Dias úteis na análise Wehandle', rascunho['Dias sem confirmação']),
       campoCalculado('Situação do prazo Wehandle', rascunho['Situação prazo Wehandle']),
       campoCalculado('Consistência do status', rascunho['Consistência do status']),
@@ -280,7 +331,15 @@ function secaoHistoricoCarregando() {
   ]);
 }
 
-function secaoHistoricoPronta(entradas) {
+function secaoHistoricoPronta(entradasBrutas) {
+  // Campos derivados (recalculados sozinhos) sao ruido no historico - filtra
+  // aqui tambem pra sumir com entradas antigas que ja' foram gravadas assim,
+  // nao so' as novas (registrarHistorico ja' nao grava mais isso daqui pra
+  // frente - dados/index.js) - pedido da Sara, 27/08/2026.
+  const entradas = entradasBrutas
+    .map((e) => ({ ...e, mudancas: e.mudancas.filter((m) => !CAMPOS_DERIVADOS.includes(m.campo)) }))
+    .filter((e) => e.mudancas.length);
+
   const itens = entradas.length
     ? entradas.slice(0, 12).map((e) => el('li', {}, [
         el('span', {}, [
@@ -333,7 +392,7 @@ function desenhar() {
     el('div', { class: 'secao' }, [
       el('h3', { texto: 'Dados do colaborador' }),
       el('div', { class: 'grade' }, [
-        campoTexto('Nome completo', 'Nome completo', { largo: true }),
+        campoTexto('Nome completo', 'Nome completo', { largo: true, maiusculo: true }),
         campoTexto('CPF', 'CPF'),
         campoTexto('CNPJ (se PJ)', 'CNPJ (se PJ)'),
         campoSelect('Vínculo', 'Tipo', ['', 'CLT', 'PJ']),
@@ -344,24 +403,7 @@ function desenhar() {
       ]),
     ]),
 
-    el('div', { class: 'secao' }, [
-      el('h3', { texto: 'Situação e prazos' }),
-      el('div', { class: 'grade' }, [
-        campoSelect('Status atual', 'Status atual', ['', ...STATUS_VALIDOS], { largo: true }),
-        campoTexto('Data envio para assinatura', 'Data envio p/ assinatura', { tipo: 'date' }),
-        campoTexto('Data envio para análise Wehandle', 'Data envio p/ análise Wehandle', { tipo: 'date' }),
-        campoTexto('Data cadastro empresa Wehandle (PJ)', 'Data cadastro empresa Wehandle (PJ)', { tipo: 'date' }),
-        campoTexto('Data aprovação', 'Data aprovação', { tipo: 'date' }),
-        campoTexto('Data integração agendada', 'Data integração agendada', { tipo: 'date' }),
-        campoTexto('Resultado análise', 'Resultado análise'),
-        campoTexto('Motivo reprovação', 'Motivo reprovação', { largo: true }),
-        campoTexto(
-          'Alerta de verificação de conteúdo (apague depois de conferir o documento)',
-          'Alerta verificação de conteúdo',
-          { largo: true }
-        ),
-      ]),
-    ]),
+    secaoPrazos(),
 
     secaoDocumentos(),
     secaoCalculados(),

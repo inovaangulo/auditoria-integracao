@@ -223,7 +223,11 @@ export async function historicoDe(reg) {
 async function registrarHistorico(novo, antigo) {
   const mudancas = [];
   for (const campo of Object.keys(novo)) {
-    if (campo.startsWith('__')) continue;
+    // Campos derivados (recalculados sozinhos a cada edicao/passagem do
+    // tempo - "Dias aguardando assinatura" etc.) sao ruido no historico: nao
+    // sao uma decisao de ninguem, so' consequencia de outro campo real ter
+    // mudado - pedido da Sara, 27/08/2026.
+    if (campo.startsWith('__') || CAMPOS_DERIVADOS.includes(campo)) continue;
     const de = String(antigo[campo] ?? '');
     const para = String(novo[campo] ?? '');
     if (de !== para) mudancas.push({ campo, de, para });

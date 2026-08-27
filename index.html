@@ -125,12 +125,20 @@
       <div id="pastaBuscaResultados"></div>
     </label>
 
-    <label class="campo largo">
+    <label class="campo largo" id="pastaVinculoSecao">
+      <span>Vínculo</span>
+      <select id="pastaVinculo">
+        <option value="">Selecione…</option>
+        <option value="CLT">CLT</option>
+        <option value="PJ">PJ</option>
+      </select>
+    </label>
+    <label class="campo largo" id="pastaNomeSecao">
       <span>Nome completo</span>
       <input type="text" id="pastaNome" placeholder="Ex.: Ana Paula Ribeiro">
     </label>
     <label class="campo largo">
-      <span>CPF ou CNPJ</span>
+      <span id="pastaDocRotulo">CPF ou CNPJ</span>
       <input type="text" id="pastaDoc" placeholder="Só os números, com ou sem pontuação" inputmode="numeric">
     </label>
     <div class="alerta" id="pastaAviso"></div>
