@@ -15,11 +15,34 @@ export function configurar({ abrirDetalhe, erro }) {
 /** Cartao arrastado no momento — o drop precisa saber de quem se trata. */
 let arrastando = null;
 
+const QTD_CORES_ROTULO = 8;
+
+/** Cor sempre igual pro mesmo nome de empresa - hash simples, sem precisar guardar mapeamento em lugar nenhum. */
+function corDoRotulo(nome) {
+  let hash = 0;
+  for (let i = 0; i < nome.length; i++) hash = (hash * 31 + nome.charCodeAt(i)) >>> 0;
+  return hash % QTD_CORES_ROTULO;
+}
+
+/** "Clientes / projetos em que já atuou" separado em nomes individuais - um rótulo por empresa. */
+function rotulosDeEmpresas(reg) {
+  return String(reg['Clientes / projetos em que já atuou'] || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function montarCartao(reg) {
   const faltando = documentosFaltantes(reg);
   const listaAlertas = alertas(reg);
+  const empresas = rotulosDeEmpresas(reg);
 
   const badges = el('div', { class: 'cartao-badges' }, [
+    reg['Cliente atual']
+      ? el('span', {
+          class: `rotulo-empresa cor-${corDoRotulo(reg['Cliente atual'])}`, texto: reg['Cliente atual'],
+        })
+      : null,
     el('span', { class: 'badge tipo', texto: reg['Tipo'] || 'Sem vínculo' }),
     faltando.length
       ? el('span', {
@@ -46,6 +69,11 @@ function montarCartao(reg) {
     role: 'button',
     'aria-label': `Abrir ficha de ${reg['Nome completo']}`,
   }, [
+    empresas.length
+      ? el('div', { class: 'cartao-rotulos' }, empresas.map((nome) =>
+          el('span', { class: `rotulo-empresa cor-${corDoRotulo(nome)}`, texto: nome, title: nome })
+        ))
+      : null,
     el('div', { class: 'cartao-nome', texto: reg['Nome completo'] }),
     el('div', { class: 'cartao-linha', texto: documentoDe(reg) }),
     el('div', { class: 'cartao-linha', texto: reg['Cargo / Função'] || 'Cargo não informado' }),

@@ -5,6 +5,7 @@ import * as dados from './dados/index.js';
 import * as kanban from './telas/kanban.js';
 import * as dashboard from './telas/dashboard.js';
 import * as lista from './telas/lista.js';
+import * as checklistClientes from './telas/checklist-clientes.js';
 import * as detalhe from './telas/detalhe.js';
 import * as geradorPasta from './telas/gerador-pasta.js';
 import { RESPONSAVEIS_ADM } from './schema.js';
@@ -23,7 +24,7 @@ function pegarNos() {
     'rotuloFonte', 'btnConectar', 'btnImportar', 'btnExportar', 'btnAtualizar',
     'faixaAviso', 'filtroBusca', 'filtroCliente', 'filtroResponsavel', 'filtroTipo', 'filtroAlerta',
     'contadorGeral', 'carregando', 'kanban', 'painelKanban', 'painelDashboard',
-    'painelLista', 'abaKanban', 'abaDashboard', 'abaLista', 'inputArquivo',
+    'painelLista', 'painelChecklist', 'abaKanban', 'abaDashboard', 'abaLista', 'abaChecklist', 'inputArquivo',
     'btnGeradorPasta',
   ];
   for (const id of ids) nos[id] = document.getElementById(id);
@@ -98,6 +99,7 @@ function trocarAba(nome) {
     Kanban: [nos.abaKanban, nos.painelKanban],
     Dashboard: [nos.abaDashboard, nos.painelDashboard],
     Lista: [nos.abaLista, nos.painelLista],
+    Checklist: [nos.abaChecklist, nos.painelChecklist],
   };
   for (const [chave, [aba, painel]] of Object.entries(mapa)) {
     const ativo = chave === nome;
@@ -112,6 +114,17 @@ function trocarAba(nome) {
 // ---------------------------------------------------------------------------
 
 function renderizar() {
+  // "Checklist por cliente" e' referencia estatica (le so' schema.js) - nao
+  // depende de nenhum colaborador carregado, entao renderiza mesmo com a
+  // planilha vazia/nao conectada, antes do "sem dados ainda" abaixo cortar o resto.
+  if (abaAtiva === 'Checklist') {
+    nos.carregando.hidden = true;
+    nos.kanban.hidden = true;
+    nos.contadorGeral.textContent = '';
+    checklistClientes.renderizar(nos.painelChecklist);
+    return;
+  }
+
   const total = dados.estado.registros.length;
   const visiveis = dados.registrosFiltrados().length;
 
@@ -227,6 +240,7 @@ function ligarEventos() {
   nos.abaKanban.addEventListener('click', () => trocarAba('Kanban'));
   nos.abaDashboard.addEventListener('click', () => trocarAba('Dashboard'));
   nos.abaLista.addEventListener('click', () => trocarAba('Lista'));
+  nos.abaChecklist.addEventListener('click', () => trocarAba('Checklist'));
 
   let temporizador;
   nos.filtroBusca.addEventListener('input', () => {

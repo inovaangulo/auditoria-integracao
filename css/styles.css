@@ -196,6 +196,31 @@ button { font-family: inherit; cursor: pointer; }
 .cartao-linha { font-size: 11.5px; color: var(--tinta-fraca); }
 .cartao-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
 
+/* Rótulos de empresas em que o colaborador já atuou antes - um por nome,
+   cor fixa por empresa (mesmo hash sempre cai na mesma cor). */
+.cartao-rotulos { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.rotulo-empresa {
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rotulo-empresa.cor-0 { background: #0079bf; }
+.rotulo-empresa.cor-1 { background: #6554c0; }
+.rotulo-empresa.cor-2 { background: #00838f; }
+.rotulo-empresa.cor-3 { background: #ff8b00; }
+.rotulo-empresa.cor-4 { background: #c3298e; }
+.rotulo-empresa.cor-5 { background: #5e6c84; }
+.rotulo-empresa.cor-6 { background: #8b3a9e; }
+.rotulo-empresa.cor-7 { background: #026aa7; }
+
 .badge {
   border-radius: 10px;
   padding: 2px 8px;
@@ -396,6 +421,8 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: 5px;
   font-size: 13px;
   font-weight: 600;
+  display: inline-block;
+  text-decoration: none;
 }
 .btn-secundario:hover { background: var(--cinza-suave); }
 
@@ -432,6 +459,7 @@ button { font-family: inherit; cursor: pointer; }
 .grade .largo { grid-column: 1 / -1; }
 
 .campo { display: flex; flex-direction: column; gap: 3px; }
+.campo[hidden] { display: none; }
 .campo > span { font-size: 11px; color: var(--tinta-fraca); font-weight: 600; }
 
 .campo input,
@@ -565,6 +593,12 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--vermelho);
 }
 
+.grade-checklist-clientes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.cartao-cliente h3 { color: var(--tinta); }
+.lista-checklist { margin: 0; padding-left: 18px; font-size: 13px; }
+.lista-checklist li { margin-bottom: 5px; }
+.lista-checklist .rotulo { color: var(--tinta-fraca); font-size: 11.5px; }
+
 .barra-linha { margin-bottom: 11px; }
 .barra-rotulo { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
 .barra-trilho { height: 9px; background: var(--cinza-suave); border-radius: 5px; overflow: hidden; }
@@ -572,6 +606,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* --------------------------------------------------------------- tabela */
 
+.lista-topo { display: flex; justify-content: flex-end; margin-bottom: 10px; }
 .tabela-rolagem { overflow-x: auto; background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); }
 
 table.lista { width: 100%; border-collapse: collapse; font-size: 12.5px; }
