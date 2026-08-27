@@ -1,10 +1,16 @@
 /**
  * Espelho da aba "Cadastro de Documentos" do Painel_Controle_Integracao_Trivia_Tabela.xlsx.
  *
- * A ordem de COLUNAS tem que bater exatamente com a planilha (A ate AV): tanto a
+ * A ordem de COLUNAS tem que bater exatamente com a planilha (A ate BB): tanto a
  * importacao do .xlsx quanto a API do Graph devolvem a linha como um array
  * posicional, e e' por essa ordem que a linha vira objeto e volta a ser linha.
  * Se alguem inserir uma coluna na planilha, inclua-a aqui na mesma posicao.
+ *
+ * AW-BB (documentos extras por contrato - Motiva Pantanal, Alcoa, Via Brasil,
+ * Ecovias do Araguaia/Capixaba/EcoRioMinas, EPR/Nova 381/Nova 364) so' existem
+ * na planilha real a partir de 26/08/2026 - precisam ser criadas manualmente
+ * na aba "Cadastro de Documentos" com esse texto exato antes de publicar, ou a
+ * gravacao na planilha real desalinha a partir da primeira coluna nova.
  */
 
 export const COLUNAS = [
@@ -56,6 +62,12 @@ export const COLUNAS = [
   'Doc: Declaração Inexistência de Riscos (PJ)',        // AT
   'Doc: Relação dos Alojamentos (PJ)',      // AU
   'Alerta verificação de conteúdo',         // AV - lista dos documentos com nome não conferido; ADM apaga ao revisar
+  'Doc: Cartão de Vacina',                              // AW - Motiva Pantanal, Alcoa, Via Brasil
+  'Doc: Tipo Sanguíneo + Fator RH',                     // AX - Motiva Pantanal
+  'Doc: Apólice de Seguro',                             // AY - Motiva Pantanal
+  'Doc: Declaração de Riscos',                          // AZ - Ecovias do Araguaia, Ecovias Capixaba, EcoRioMinas
+  'Doc: Declaração de Não Obrigatoriedade de NRs',      // BA - EPR, Nova 381, Nova 364
+  'Doc: Declaração de N3 – Permissão de Trabalho',      // BB - Nova 381
 ];
 
 /**
@@ -130,6 +142,17 @@ export const DOCUMENTOS = [
   { campo: 'Doc: Declaração Inexistência de Riscos (PJ)',
     label: 'Declaração de Inexistência de Riscos', vinculo: 'PJ', abrevs: ['DECLRISCOS'], clientes: ['Trivia'] },
   { campo: 'Doc: Relação dos Alojamentos (PJ)',       label: 'Relação dos Alojamentos',         vinculo: 'PJ', abrevs: ['ALOJAMENTO'], verificarNome: false, clientes: ['Trivia', 'Motiva Pantanal'] },
+
+  // Extras por contrato (Parte 2, 26/08/2026) - colunas AW-BB, so' existem na
+  // planilha real a partir dessa data (ver comentario em COLUNAS).
+  { campo: 'Doc: Cartão de Vacina',                   label: 'Cartão de Vacina',                vinculo: 'todos', abrevs: ['VACINA'], verificarNome: false, clientes: ['Motiva Pantanal', 'Alcoa', 'Via Brasil'] },
+  { campo: 'Doc: Tipo Sanguíneo + Fator RH',          label: 'Tipo Sanguíneo + Fator RH',       vinculo: 'todos', abrevs: ['TIPOSANGUE'], verificarNome: false, clientes: ['Motiva Pantanal'] },
+  { campo: 'Doc: Apólice de Seguro',                  label: 'Apólice de Seguro',               vinculo: 'todos', abrevs: ['APOLICE'], verificarNome: false, clientes: ['Motiva Pantanal'] },
+  { campo: 'Doc: Declaração de Riscos',               label: 'Declaração de Riscos',            vinculo: 'todos', abrevs: ['RISCOSCONTRATO'], verificarNome: false, clientes: ['Ecovias do Araguaia', 'Ecovias Capixaba', 'EcoRioMinas'] },
+  { campo: 'Doc: Declaração de Não Obrigatoriedade de NRs',
+    label: 'Declaração de Não Obrigatoriedade de NRs', vinculo: 'todos', abrevs: ['DESOBRIGANR'], verificarNome: false, clientes: ['EPR', 'Nova 381', 'Nova 364'] },
+  { campo: 'Doc: Declaração de N3 – Permissão de Trabalho',
+    label: 'Declaração de N3 – Permissão de Trabalho', vinculo: 'todos', abrevs: ['N3'], verificarNome: false, clientes: ['Nova 381'] },
 ];
 
 /** Normaliza nome de cliente pra comparação (sem acento, sem maiúscula, sem espaço nas pontas). */
