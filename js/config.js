@@ -54,7 +54,10 @@ export const CONFIG = {
    */
   pastasColaboradores: {
     siteId: 'angulosocialbr.sharepoint.com,f34035fd-91eb-43fc-9239-ed17c5a7a20c,98a989fd-111a-4ae0-abf1-78f06ad993c4',
-    pastaBase: 'DOCUMENTOS_INTEGRACAO', // renomeada em 17/08/2026 (era TESTES_IA_ADM)
+    // Caminho novo em 15/09/2026: separa Admissao/Demissao/Integracao (irmas,
+    // fora daqui) dentro de CONTRATACOES_COLABORADORES. O app so' usa a de
+    // Integracao. Antes era so' 'DOCUMENTOS_INTEGRACAO' (e, antes disso, 'TESTES_IA_ADM').
+    pastaBase: 'DOCUMENTOS_RH/CONTRATACOES_COLABORADORES/INTEGRACAO',
   },
 };
 
