@@ -54,7 +54,10 @@ export const CONFIG = {
    */
   pastasColaboradores: {
     siteId: 'angulosocialbr.sharepoint.com,f34035fd-91eb-43fc-9239-ed17c5a7a20c,98a989fd-111a-4ae0-abf1-78f06ad993c4',
-    pastaBase: 'DOCUMENTOS_INTEGRACAO', // renomeada em 17/08/2026 (era TESTES_IA_ADM)
+    // Movida em 17/09/2026 pra dentro da arvore oficial de RH (alinhado com o
+    // time de RH pela Sara). Antes era so' 'DOCUMENTOS_INTEGRACAO' na raiz do
+    // site (e, antes disso, 'TESTES_IA_ADM').
+    pastaBase: '01_RH/03_COLABORADOR/DOCUMENTOS_INTEGRACAO',
   },
 };
 
