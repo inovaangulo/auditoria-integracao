@@ -118,9 +118,25 @@ const FAQ = [
     chaves: ['nao carrega', 'nao aparece nada', 'tela em branco', 'erro generico', 'sem internet'],
     resposta: 'Confira se está logado com a conta @angulosocial.com certa e se tem acesso à pasta da planilha no SharePoint. Se persistir, tente um recarregamento forçado (Ctrl+Shift+R) — o GitHub Pages guarda os arquivos por até 10 minutos, então um F5 comum às vezes não é suficiente logo depois de uma atualização.',
   },
+  {
+    chaves: ['cargo', 'funcao', 'lista de cargo', 'coordenador', 'gerente', 'supervisor', 'analista socioambiental', 'agente de campo', 'cargo fora da lista'],
+    resposta: 'O campo "Cargo/Função" da ficha é uma lista de seleção (Coordenador(a), Gerente, Supervisor(a), Analista Socioambiental, Agente de Campo) — não é mais texto livre, pra evitar grafia diferente pro mesmo cargo. Um cargo antigo digitado à mão que não esteja na lista continua aparecendo, marcado como "fora da lista".',
+  },
+  {
+    chaves: ['pasta do colaborador', 'link da pasta', 'abrir pasta', 'ache a pasta', 'cade a pasta', 'onde fica a pasta', 'pasta no sharepoint', 'botao pasta', 'icone pasta'],
+    resposta: 'Não precisa procurar a pasta manualmente: cada cartão do Kanban e cada linha da Lista tem um botão 📁 que abre a pasta daquele colaborador específico direto no SharePoint — o app acha (ou usa o mesmo padrão de nome pra localizar) sem precisar criar nada antes. Só aparece com o SharePoint conectado.',
+  },
+  {
+    chaves: ['rotulo', 'etiqueta', 'cor da empresa', 'cor do cliente', 'tag colorida', 'clientes que ja atuou', 'projetos que ja atuou', 'empresas anteriores'],
+    resposta: 'É um recurso visual: o cliente atual do colaborador aparece como um rótulo colorido no topo do cartão do Kanban, e se ele já passou por outros clientes ("Clientes / projetos em que já atuou"), cada um vira um rótulo também — sempre a mesma cor pra cada empresa, tanto no Kanban quanto na ficha. Só ajuda a identificar de relance, não muda nada no checklist nem no cálculo.',
+  },
+  {
+    chaves: ['maiuscula', 'caixa alta', 'nome em maiusculo', 'caps lock', 'nome tudo maiusculo'],
+    resposta: 'O campo "Nome completo" (na ficha e no criador de pasta) converte pra maiúscula sozinho enquanto você digita — não precisa segurar Caps Lock. Um nome já salvo antes dessa mudança só fica maiúsculo quando alguém editar de novo.',
+  },
 ];
 
-const RESPOSTA_PADRAO = 'Não encontrei essa pergunta na minha base — tenta reformular com outras palavras, ou fala direto com a Sara Cantão. Algumas coisas que sei explicar: login, Kanban, salvar a ficha, status e checklist de documentos (inclusive por cliente), cores dos alertas, filtro por responsável, exportar/importar planilha, criar pasta de colaborador, e-mail de alerta, instalar o app e aviso de nova versão.';
+const RESPOSTA_PADRAO = 'Não encontrei essa pergunta na minha base — tenta reformular com outras palavras, ou fala direto com a Sara Cantão. Algumas coisas que sei explicar: login, Kanban, salvar a ficha, status e checklist de documentos (inclusive por cliente), cores dos alertas, filtro por responsável, exportar/importar planilha, criar pasta de colaborador, link da pasta no Kanban/Lista, rótulos de cliente, cargo/função, e-mail de alerta, instalar o app e aviso de nova versão.';
 
 const STOPWORDS = new Set([
   'a', 'o', 'as', 'os', 'de', 'da', 'do', 'das', 'dos', 'e', 'é', 'ou', 'um', 'uma', 'uns', 'umas',
@@ -291,8 +307,22 @@ async function responderPergunta(pergunta) {
   // um único termo genérico batendo por acaso (ex.: "tempo") não deve gerar
   // uma resposta inteira sobre outro assunto.
   if (pontosChunk >= minimoNecessario) return melhorChunk.texto;
-  if (pontosFaq >= 1) return melhorFaq.resposta;
-  return RESPOSTA_PADRAO;
+
+  // Nenhum dos dois bateu com confiança - em vez de simplesmente desistir,
+  // oferece o palpite mais próximo com uma ressalva, em vez da resposta
+  // padrão seca. A FAQ é curada à mão, então mesmo 1 palavra batendo já é
+  // um sinal deliberado; já os pedaços do plano são extraídos automático de
+  // texto livre, com um universo de palavras bem maior - exigir só 1 ali
+  // deixava passar coincidência boba (ex.: "qual o cardápio do restaurante"
+  // "achando" um pedaço aleatório do plano). Por isso o pedaço do plano só
+  // vira palpite com pelo menos 2 palavras em comum, igual à FAQ certeira.
+  const candidatos = [];
+  if (pontosFaq >= 1) candidatos.push({ pontos: pontosFaq, texto: melhorFaq.resposta });
+  if (pontosChunk >= 2) candidatos.push({ pontos: pontosChunk, texto: melhorChunk.texto });
+  if (!candidatos.length) return RESPOSTA_PADRAO;
+
+  candidatos.sort((a, b) => b.pontos - a.pontos);
+  return `Não achei uma resposta certeira pra essa, mas talvez ajude: ${candidatos[0].texto} Se não era isso, tenta reformular com outras palavras.`;
 }
 
 function mensagem(texto, autor) {
@@ -305,13 +335,14 @@ const SUGESTOES = [
   'Como resolvo os alertas?',
   'O checklist muda por cliente?',
   'Como crio a pasta de um colaborador?',
+  'Onde acho a pasta de um colaborador?',
   'Como recebo alertas por e-mail?',
   'Erro ao entrar (login)',
 ];
 
 function montarPainel() {
   const corpo = el('div', { class: 'chatbot-corpo', id: 'chatbotCorpo' }, [
-    mensagem('Oi! Posso ajudar com dúvidas sobre como usar o app de Auditoria de Integração — login, Kanban, salvar, alertas, checklist por cliente, criar pasta de colaborador, filtros, exportar planilha, e-mail de alerta, instalar o app... Pode perguntar, ou clicar numa das sugestões abaixo.', 'bot'),
+    mensagem('Oi! Posso ajudar com dúvidas sobre como usar o app de Auditoria de Integração — login, Kanban, salvar, alertas, checklist por cliente, criar pasta de colaborador, link da pasta, cargo/função, rótulos de cliente, filtros, exportar planilha, e-mail de alerta, instalar o app... Pode perguntar, ou clicar numa das sugestões abaixo.', 'bot'),
     el('div', { class: 'chatbot-sugestoes' }, SUGESTOES.map((s) =>
       el('button', { class: 'chatbot-chip', type: 'button', texto: s, onclick: () => enviarPergunta(s) })
     )),
