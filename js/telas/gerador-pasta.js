@@ -324,7 +324,7 @@ function desenharListaArquivos() {
 
 /** Rótulo do botão de ação - em "existente" a pasta já existe, então é só envio de arquivo. */
 function textoBotaoCriar() {
-  return modo === 'existente' ? 'Upload de arquivos' : 'Criar pasta no SharePoint';
+  return modo === 'existente' ? 'Upload de arquivos' : 'Criar pasta de novo colaborador';
 }
 
 function atualizarBotaoCriar() {
