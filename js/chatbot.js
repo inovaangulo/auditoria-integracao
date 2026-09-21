@@ -84,19 +84,19 @@ const FAQ = [
   },
   {
     chaves: ['adicionar colaborador', 'novo colaborador', 'cadastrar colaborador', 'incluir colaborador', 'criar colaborador', 'como cadastro'],
-    resposta: 'Não existe um botão de "novo colaborador" separado — use "Criar pasta de colaborador" no topo do app: digite nome e CPF/CNPJ, escolha o tipo de cada documento (ou "Outro" pra um tipo fora da lista) e envie os arquivos. O app cria a pasta de verdade em DOCUMENTOS_INTEGRACAO no SharePoint (ou reaproveita se ela já existir) e sobe cada arquivo já com o nome certo. Em até 3 horas a rotina automática cria a linha na planilha e ele aparece no Kanban, na coluna "Pendente" — depois é só abrir a ficha e completar o "Cliente atual" e os outros dados.',
+    resposta: 'Não existe um botão de "novo colaborador" separado — use "Iniciar integração" no topo do app: digite nome e CPF/CNPJ, escolha o tipo de cada documento (ou "Outro" pra um tipo fora da lista) e envie os arquivos. O app cria a pasta de verdade em DOCUMENTOS_INTEGRACAO no SharePoint (ou reaproveita se ela já existir) e sobe cada arquivo já com o nome certo. Em até 3 horas a rotina automática cria a linha na planilha e ele aparece no Kanban, na coluna "Pendente" — depois é só abrir a ficha e completar o "Cliente atual" e os outros dados.',
   },
   {
     chaves: ['nome da pasta', 'como nomear pasta', 'padrao de pasta', 'criar pasta colaborador'],
-    resposta: 'A pasta do colaborador se chama CPF (ou CNPJ)_Nome_completo — ex.: "111.222.333-44_Ana_Paula_Ribeiro". Use o botão "Criar pasta de colaborador" no topo do app: ele já cria a pasta de verdade no SharePoint com o nome certo, sem risco de erro de formatação.',
+    resposta: 'A pasta do colaborador se chama CPF (ou CNPJ)_Nome_completo — ex.: "111.222.333-44_Ana_Paula_Ribeiro". Use o botão "Iniciar integração" no topo do app: ele já cria a pasta de verdade no SharePoint com o nome certo, sem risco de erro de formatação.',
   },
   {
     chaves: ['nome do arquivo', 'como nomear documento', 'aso', 'rg', 'cnh', 'tipo de documento no arquivo'],
-    resposta: 'Dentro da pasta do colaborador, o nome do arquivo deve terminar com a sigla do tipo de documento — ex.: "ASO.pdf", "RG.pdf", "CTPS.pdf". Não precisa repetir CPF/Nome no arquivo, já que a pasta em volta já identifica de quem é. Fazendo isso pelo botão "Criar pasta de colaborador", o app já nomeia certinho sozinho.',
+    resposta: 'Dentro da pasta do colaborador, o nome do arquivo deve terminar com a sigla do tipo de documento — ex.: "ASO.pdf", "RG.pdf", "CTPS.pdf". Não precisa repetir CPF/Nome no arquivo, já que a pasta em volta já identifica de quem é. Fazendo isso pelo botão "Iniciar integração", o app já nomeia certinho sozinho.',
   },
   {
-    chaves: ['gerador de pasta', 'gerar nome de pasta', 'criar pasta de colaborador', 'botao criar pasta', 'colaborador existente', 'subir documentos', 'adicionar documentos', 'outro tipo de documento', 'link da pasta', 'upload de arquivos', 'vinculo na pasta'],
-    resposta: 'O botão "Criar pasta de colaborador" (topo do app) tem dois modos. "Novo colaborador": escolhe o vínculo (CLT ou PJ) primeiro — o campo de CPF/CNPJ passa a exigir a quantidade certa de dígitos pra esse vínculo (11 pra CLT, 14 pra PJ) — digita nome e documento, escolhe o tipo de cada arquivo num menu (ASO, RG, CTPS etc., com opção "Outro" pra digitar um tipo fora da lista) e o botão "Criar pasta no SharePoint" cria a pasta de verdade (ou reaproveita se já existir) e sobe tudo. "Colaborador existente": busca por nome, CPF ou CNPJ pra só completar/adicionar documentos numa pasta que já existe, sem digitar tudo de novo — nesse modo o botão vira "Upload de arquivos". Nos dois casos, mostra o link da pasta no SharePoint ao final.',
+    chaves: ['gerador de pasta', 'gerar nome de pasta', 'criar pasta de colaborador', 'iniciar integracao', 'botao criar pasta', 'colaborador existente', 'subir documentos', 'adicionar documentos', 'outro tipo de documento', 'link da pasta', 'upload de arquivos', 'vinculo na pasta'],
+    resposta: 'O botão "Iniciar integração" (topo do app) tem dois modos. "Novo colaborador": escolhe o vínculo (CLT ou PJ) primeiro — o campo de CPF/CNPJ passa a exigir a quantidade certa de dígitos pra esse vínculo (11 pra CLT, 14 pra PJ) — digita nome e documento, escolhe o tipo de cada arquivo num menu (ASO, RG, CTPS etc., com opção "Outro" pra digitar um tipo fora da lista) e o botão "Criar pasta no SharePoint" cria a pasta de verdade (ou reaproveita se já existir) e sobe tudo. "Colaborador existente": busca por nome, CPF ou CNPJ pra só completar/adicionar documentos numa pasta que já existe, sem digitar tudo de novo — nesse modo o botão vira "Upload de arquivos". Nos dois casos, mostra o link da pasta no SharePoint ao final.',
   },
   {
     chaves: ['e-mail de alerta', 'resumo diario', 'recebo email', 'notificacao por email', 'alerta por email'],
@@ -136,7 +136,7 @@ const FAQ = [
   },
 ];
 
-const RESPOSTA_PADRAO = 'Não encontrei essa pergunta na minha base — tenta reformular com outras palavras, ou fala direto com a Sara Cantão. Algumas coisas que sei explicar: login, Kanban, salvar a ficha, status e checklist de documentos (inclusive por cliente), cores dos alertas, filtro por responsável, exportar/importar planilha, criar pasta de colaborador, link da pasta no Kanban/Lista, rótulos de cliente, cargo/função, e-mail de alerta, instalar o app e aviso de nova versão.';
+const RESPOSTA_PADRAO = 'Não encontrei essa pergunta na minha base — tenta reformular com outras palavras, ou fala direto com a Sara Cantão. Algumas coisas que sei explicar: login, Kanban, salvar a ficha, status e checklist de documentos (inclusive por cliente), cores dos alertas, filtro por responsável, exportar/importar planilha, iniciar integração (criar pasta de colaborador), link da pasta no Kanban/Lista, rótulos de cliente, cargo/função, e-mail de alerta, instalar o app e aviso de nova versão.';
 
 const STOPWORDS = new Set([
   'a', 'o', 'as', 'os', 'de', 'da', 'do', 'das', 'dos', 'e', 'é', 'ou', 'um', 'uma', 'uns', 'umas',
@@ -334,7 +334,7 @@ const SUGESTOES = [
   'Como funciona o Kanban?',
   'Como resolvo os alertas?',
   'O checklist muda por cliente?',
-  'Como crio a pasta de um colaborador?',
+  'Como inicio uma integração?',
   'Onde acho a pasta de um colaborador?',
   'Como recebo alertas por e-mail?',
   'Erro ao entrar (login)',
@@ -342,7 +342,7 @@ const SUGESTOES = [
 
 function montarPainel() {
   const corpo = el('div', { class: 'chatbot-corpo', id: 'chatbotCorpo' }, [
-    mensagem('Oi! Posso ajudar com dúvidas sobre como usar o app de Auditoria de Integração — login, Kanban, salvar, alertas, checklist por cliente, criar pasta de colaborador, link da pasta, cargo/função, rótulos de cliente, filtros, exportar planilha, e-mail de alerta, instalar o app... Pode perguntar, ou clicar numa das sugestões abaixo.', 'bot'),
+    mensagem('Oi! Posso ajudar com dúvidas sobre como usar o app de Auditoria de Integração — login, Kanban, salvar, alertas, checklist por cliente, iniciar integração, link da pasta, cargo/função, rótulos de cliente, filtros, exportar planilha, e-mail de alerta, instalar o app... Pode perguntar, ou clicar numa das sugestões abaixo.', 'bot'),
     el('div', { class: 'chatbot-sugestoes' }, SUGESTOES.map((s) =>
       el('button', { class: 'chatbot-chip', type: 'button', texto: s, onclick: () => enviarPergunta(s) })
     )),
