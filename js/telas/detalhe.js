@@ -6,7 +6,7 @@
  * parar na planilha compartilhada.
  */
 
-import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS, RESPONSAVEIS_ADM, CLIENTES_CONHECIDOS, CARGOS_CONHECIDOS } from '../schema.js';
+import { documentosDoVinculo, VALORES_DOC, STATUS_VALIDOS, RESPONSAVEIS_ADM, CLIENTES_CONHECIDOS, CARGOS_CONHECIDOS, CIDADES_CONHECIDAS } from '../schema.js';
 import { recalcular, alertas, paraInputDate, CAMPOS_DERIVADOS } from '../regras.js';
 import { salvarRegistro, excluirRegistro, historicoDe, dataEntradaDe, estado } from '../dados/index.js';
 import { el, limpar, documentoDe, confirmarConflito, forcarMaiusculo, corDoRotulo, rotulosDeEmpresas } from '../ui.js';
@@ -199,6 +199,10 @@ function campoClienteAtual() {
 
 function campoCargo() {
   return campoSelectComOpcoesFixas('Cargo / Função', 'Cargo / Função', CARGOS_CONHECIDOS);
+}
+
+function campoCidade() {
+  return campoSelectComOpcoesFixas('Cidade', 'Cidade', CIDADES_CONHECIDAS);
 }
 
 /**
@@ -421,6 +425,7 @@ function desenhar() {
         campoSelect('Vínculo', 'Tipo', ['', 'CLT', 'PJ']),
         campoClienteAtual(),
         campoCargo(),
+        campoCidade(),
         campoResponsavelAdm(),
         campoTexto('WhatsApp contato', 'WhatsApp contato'),
       ]),

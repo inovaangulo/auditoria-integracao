@@ -32,7 +32,7 @@ export const estado = {
   usuario: null,
   conectado: false,
   registros: [],
-  filtros: { busca: '', cliente: '', responsavel: '', tipo: '', alerta: '' },
+  filtros: { busca: '', cliente: '', responsavel: '', tipo: '', alerta: '', cidade: '' },
   datasEntrada: new Map(), // chave -> data de entrada (Map: le' rapido, chave ja normalizada)
   atualizacaoPendente: false, // true quando ha' versao nova - bloqueia gravacao, ver bloquearPorAtualizacao()
 };
@@ -281,13 +281,14 @@ function normalizar(s) {
 }
 
 export function registrosFiltrados() {
-  const { busca, cliente, responsavel, tipo, alerta } = estado.filtros;
+  const { busca, cliente, responsavel, tipo, alerta, cidade } = estado.filtros;
   const termo = normalizar(busca).trim();
 
   return estado.registros.filter((r) => {
     if (cliente && r['Cliente atual'] !== cliente) return false;
     if (responsavel && r['Responsável ADM'] !== responsavel) return false;
     if (tipo && r['Tipo'] !== tipo) return false;
+    if (cidade && r['Cidade'] !== cidade) return false;
 
     if (alerta === 'alerta' && alertas(r).length === 0) return false;
     if (alerta === 'incompleto' && r['Documentos completos?'] === 'SIM') return false;
@@ -318,6 +319,10 @@ export function clientes() {
 
 export function responsaveis() {
   return [...new Set(estado.registros.map((r) => r['Responsável ADM']).filter(Boolean))].sort();
+}
+
+export function cidades() {
+  return [...new Set(estado.registros.map((r) => r['Cidade']).filter(Boolean))].sort();
 }
 
 export { alertas, documentosFaltantes };

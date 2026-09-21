@@ -1,7 +1,7 @@
 /**
  * Espelho da aba "Cadastro de Documentos" do Painel_Controle_Integracao_Trivia_Tabela.xlsx.
  *
- * A ordem de COLUNAS tem que bater exatamente com a planilha (A ate BB): tanto a
+ * A ordem de COLUNAS tem que bater exatamente com a planilha (A ate BC): tanto a
  * importacao do .xlsx quanto a API do Graph devolvem a linha como um array
  * posicional, e e' por essa ordem que a linha vira objeto e volta a ser linha.
  * Se alguem inserir uma coluna na planilha, inclua-a aqui na mesma posicao.
@@ -11,6 +11,10 @@
  * na planilha real a partir de 26/08/2026 - precisam ser criadas manualmente
  * na aba "Cadastro de Documentos" com esse texto exato antes de publicar, ou a
  * gravacao na planilha real desalinha a partir da primeira coluna nova.
+ *
+ * BC ("Cidade", pedido da Sara 21/09/2026) - mesma coisa: precisa criar essa
+ * coluna na planilha real antes de publicar essa versao, senao a gravacao
+ * desalinha a partir dela.
  */
 
 export const COLUNAS = [
@@ -68,6 +72,7 @@ export const COLUNAS = [
   'Doc: Declaração de Riscos',                          // AZ - Ecovias do Araguaia, Ecovias Capixaba, EcoRioMinas
   'Doc: Declaração de Não Obrigatoriedade de NRs',      // BA - EPR, Nova 381, Nova 364
   'Doc: Declaração de N3 – Permissão de Trabalho',      // BB - Nova 381
+  'Cidade',                                             // BC - nova em 21/09/2026, ainda nao existe na planilha real
 ];
 
 /**
@@ -177,6 +182,11 @@ export const CLIENTES_CONHECIDOS = [
 /** Cargos/funções conhecidos, pra oferecer num menu em vez de digitar. Pedido da Sara, 27/08/2026. */
 export const CARGOS_CONHECIDOS = [
   'Coordenador(a)', 'Gerente', 'Supervisor(a)', 'Analista Socioambiental', 'Agente de Campo',
+];
+
+/** Cidades conhecidas, pra oferecer num menu em vez de digitar. Pedido da Sara, 21/09/2026. */
+export const CIDADES_CONHECIDAS = [
+  'Belo Horizonte', 'Caucaia', 'Fortaleza', 'Guarulhos', 'São Paulo',
 ];
 
 /**
