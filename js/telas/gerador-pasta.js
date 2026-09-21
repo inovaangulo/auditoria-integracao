@@ -15,7 +15,7 @@
  * volta a ser so' o gerador de texto, como antes.
  */
 
-import { estado } from '../dados/index.js';
+import { estado, aoMudar } from '../dados/index.js';
 import { OPCOES_TIPODOC } from '../schema.js';
 import { el, limpar, forcarMaiusculo } from '../ui.js';
 
@@ -329,13 +329,24 @@ function textoBotaoCriar() {
 
 function atualizarBotaoCriar() {
   if (!nos.btnCriar) return;
+  if (estado.atualizacaoPendente) {
+    nos.btnCriar.disabled = true;
+    nos.btnCriar.textContent = 'Recarregue a página para continuar';
+    return;
+  }
+  if (!criando) nos.btnCriar.textContent = textoBotaoCriar();
   const prontoDados = Boolean(nos.saida.value);
   const arquivosOk = arquivos.length > 0 && arquivos.every((a) => tipoEfetivo(a));
   nos.btnCriar.disabled = criando || !prontoDados || !arquivosOk;
 }
 
+// Reage na hora se uma atualizacao pendente aparecer com o modal ja' aberto -
+// pedido da Sara: nenhuma acao de escrita (nem essa, que cria pasta/envia
+// arquivo pro SharePoint) pode continuar disponivel sem recarregar.
+aoMudar(atualizarBotaoCriar);
+
 async function criarPasta() {
-  if (criando || !estado.fonte?.criarOuAcharPastaColaborador) return;
+  if (criando || estado.atualizacaoPendente || !estado.fonte?.criarOuAcharPastaColaborador) return;
   criando = true;
   nos.btnCriar.disabled = true;
   nos.btnCriar.textContent = modo === 'existente' ? 'Enviando…' : 'Criando pasta…';
