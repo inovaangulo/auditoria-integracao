@@ -176,8 +176,15 @@ export class FonteSharePoint {
   }
 
   async adicionar(reg) {
-    const atuais = await this.chamar(`${this.base}/usedRange(valuesOnly=true)?$select=rowCount`);
-    const linha = (atuais.rowCount || 1) + 1;
+    // Logo abaixo do ultimo colaborador (mesma regra da sincronizacao) - a
+    // area usada da aba vai ate' onde houver formula pre-preenchida (~300),
+    // entao "fim da area usada" jogaria o cadastro centenas de linhas abaixo.
+    const dados = await this.chamar(`${this.base}/usedRange(valuesOnly=true)?$select=values`);
+    let ultima = 1;
+    (dados.values || []).forEach((valores, i) => {
+      if (i > 0 && String(linhaParaRegistro(valores)['Nome completo'] || '').trim()) ultima = i + 1;
+    });
+    const linha = ultima + 1;
     const endereco = `A${linha}:${this.colunaFinal}${linha}`;
     await this.chamar(`${this.base}/range(address='${endereco}')`, {
       method: 'PATCH',

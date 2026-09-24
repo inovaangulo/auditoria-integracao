@@ -15,8 +15,8 @@
  * volta a ser so' o gerador de texto, como antes.
  */
 
-import { estado, aoMudar } from '../dados/index.js';
-import { OPCOES_TIPODOC } from '../schema.js';
+import { estado, aoMudar, salvarRegistro, chave } from '../dados/index.js';
+import { OPCOES_TIPODOC, registroVazio } from '../schema.js';
 import { el, limpar, forcarMaiusculo } from '../ui.js';
 
 const nos = {};
@@ -336,7 +336,9 @@ function atualizarBotaoCriar() {
   }
   if (!criando) nos.btnCriar.textContent = textoBotaoCriar();
   const prontoDados = Boolean(nos.saida.value);
-  const arquivosOk = arquivos.length > 0 && arquivos.every((a) => tipoEfetivo(a));
+  // Novo colaborador pode ser cadastrado sem documento (pasta + cartao ja'
+  // nascem, os arquivos vem depois); "existente" so' serve pra enviar arquivo.
+  const arquivosOk = arquivos.every((a) => tipoEfetivo(a)) && (modo === 'novo' || arquivos.length > 0);
   nos.btnCriar.disabled = criando || !prontoDados || !arquivosOk;
 }
 
@@ -344,6 +346,52 @@ function atualizarBotaoCriar() {
 // pedido da Sara: nenhuma acao de escrita (nem essa, que cria pasta/envia
 // arquivo pro SharePoint) pode continuar disponivel sem recarregar.
 aoMudar(atualizarBotaoCriar);
+
+/**
+ * Cadastro que a sincronizacao criaria a partir do nome da pasta - espelha
+ * novoRegistroDaPasta (AuditoriaIntegracaoAutomacao/scripts/sincronizar-
+ * documentos.mjs) pra que, quando ela rodar, ache o cadastro pelo CPF/CNPJ e
+ * nao crie outro. Pedido da Sara (24/09/2026): o cartao tem que aparecer no
+ * Kanban na mesma hora em que a pasta e' criada.
+ */
+function registroDaPasta(nomePasta) {
+  const i = nomePasta.indexOf('_');
+  if (i < 0) return null;
+  const doc = nomePasta.slice(0, i);
+  const nome = nomePasta.slice(i + 1).replace(/_/g, ' ').trim();
+  const digitos = doc.replace(/\D/g, '');
+  if (!nome) return null;
+
+  const reg = registroVazio();
+  reg['Nome completo'] = nome;
+  reg['Status atual'] = 'Documento em elaboração';
+  reg['Data de entrada'] = new Date().toISOString().slice(0, 10);
+  if (digitos.length === 11) {
+    reg['Tipo'] = 'CLT';
+    reg['CPF'] = doc;
+  } else if (digitos.length === 14) {
+    const m = doc.match(/^(\d{2}\.\d{3}\.\d{3})-(\d{4})-(\d{2})$/);
+    reg['Tipo'] = 'PJ';
+    reg['CNPJ (se PJ)'] = m ? `${m[1]}/${m[2]}-${m[3]}` : doc;
+  } else {
+    return null;
+  }
+  return reg;
+}
+
+async function cadastrarNoKanban(nomePasta) {
+  const novo = registroDaPasta(nomePasta);
+  if (!novo || estado.registros.some((r) => chave(r) === chave(novo))) return;
+  try {
+    await salvarRegistro(novo, null);
+    nos.resultado.append(el('p', { class: 'alerta ok', texto: 'Cartão criado no Kanban, na coluna Pendente.' }));
+  } catch (err) {
+    nos.resultado.append(el('p', {
+      class: 'alerta atencao',
+      texto: `A pasta foi criada, mas o cartão não pôde ser criado agora (${err.message}). Ele aparece sozinho na próxima sincronização automática.`,
+    }));
+  }
+}
 
 async function criarPasta() {
   if (criando || estado.atualizacaoPendente || !estado.fonte?.criarOuAcharPastaColaborador) return;
@@ -360,6 +408,7 @@ async function criarPasta() {
       criada ? 'Pasta criada. ' : 'A pasta já existia — reaproveitada, sem duplicar. ',
       el('a', { href: webUrl, target: '_blank', rel: 'noopener', texto: 'Abrir no SharePoint' }),
     ]));
+    if (modo === 'novo') await cadastrarNoKanban(nomePasta);
 
     let sucesso = 0;
     for (const item of arquivos) {
