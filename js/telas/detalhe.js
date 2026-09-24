@@ -270,13 +270,13 @@ function secaoDocumentos() {
   const docs = documentosDoVinculo(rascunho['Tipo'], rascunho['Cliente atual']);
   const obrigatorios = docs.filter((d) => !d.condicional);
   const recebidos = obrigatorios.filter((d) => {
-    const v = (rascunho[d.campo] || '').trim();
+    const v = String(rascunho[d.campo] || '').trim();
     return v === 'Conferido automaticamente' || v === 'Conferido manualmente'
       || v === 'Pendente de conferência manual' || v === 'Não se aplica' || v === 'Recebido';
   }).length;
 
   const linhas = docs.map((d) => {
-    const bruto = (rascunho[d.campo] || '').trim();
+    const bruto = String(rascunho[d.campo] || '').trim();
     // "Recebido" e' o valor antigo (antes de 19/08/2026) - mostra igual a
     // "Conferido automaticamente" ate' ser reprocessado/editado; o valor
     // gravado so' muda de fato se a pessoa tocar nesse campo.

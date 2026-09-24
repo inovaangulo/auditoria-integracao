@@ -148,7 +148,7 @@ export function paraInputDate(valor) {
  * "incompleto", nao "completo").
  */
 function resolvido(valor) {
-  const v = (valor || '').trim();
+  const v = String(valor || '').trim();
   // "Recebido" e' o valor antigo (antes de 19/08/2026) - continua contando
   // como resolvido pra' nao fazer documento ja' recebido "desaparecer" da
   // planilha real de um dia pro outro; migra pro vocabulario novo sozinho
@@ -168,7 +168,7 @@ export function contagemDocumentos(reg) {
   const docs = documentosDoVinculo(reg['Tipo'], reg['Cliente atual']);
   const conta = { conferido: 0, pendenteConferencia: 0, naoRecebido: 0, naoSeAplica: 0, total: docs.length };
   for (const d of docs) {
-    const v = (reg[d.campo] || '').trim();
+    const v = String(reg[d.campo] || '').trim();
     if (v === 'Conferido automaticamente' || v === 'Conferido manualmente' || v === 'Recebido') conta.conferido++;
     else if (v === 'Pendente de conferência manual') conta.pendenteConferencia++;
     else if (v === 'Não se aplica') conta.naoSeAplica++;
@@ -201,8 +201,8 @@ export const CAMPOS_DERIVADOS = [
  */
 export function recalcular(reg, hoje = new Date()) {
   const r = { ...reg };
-  const tipo = (r['Tipo'] || '').trim();
-  const status = (r['Status atual'] || '').trim();
+  const tipo = String(r['Tipo'] || '').trim();
+  const status = String(r['Status atual'] || '').trim();
 
   r['CPF (só números)'] = String(r['CPF'] || '').replace(/\D/g, '');
   r['CNPJ (só números)'] = String(r['CNPJ (se PJ)'] || '').replace(/\D/g, '');
@@ -253,7 +253,7 @@ export function recalcular(reg, hoje = new Date()) {
  * E' aviso, nao trava: quem decide se o cadastro segue e' o ADM.
  */
 function consistencia(r) {
-  const status = (r['Status atual'] || '').trim();
+  const status = String(r['Status atual'] || '').trim();
   const completos = r['Documentos completos?'] === 'SIM';
 
   if (status === 'Aprovado' && !completos) {

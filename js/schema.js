@@ -18,60 +18,60 @@
  */
 
 export const COLUNAS = [
-  'Data de entrada',                                    // A - gravada uma vez, na criação do cadastro
-  'Nome completo',                                      // B
-  'CPF',                                                // C
-  'CNPJ (se PJ)',                                       // D
-  'Tipo',                                               // E
-  'Cliente atual',                                      // F
-  'Cargo / Função',                                     // G
-  'Alerta verificação de conteúdo',                     // H - lista dos documentos com nome não conferido; ADM apaga ao revisar (movida pra H na planilha real - "Alerta de Verificação")
-  'Doc: RG ou CNH',                                     // I
-  'Doc: Comprovante de Endereço',                       // J
-  'Doc: Carteira de Trabalho (CLT)',                    // K
-  'Doc: CCMEI (PJ)',                                    // L
-  'Documentos completos?',                              // M - calculado
-  'Status atual',                                       // N
-  'Data envio p/ assinatura',                           // O
-  'Dias aguardando assinatura',                         // P - calculado
-  'Alerta cobrança assinatura',                         // Q - calculado
-  'Data cadastro empresa Wehandle (PJ)',                // R
-  'Dias sem confirmação (PJ)',                          // S - calculado
-  'Alerta confirmação pendente (PJ)',                   // T - calculado
-  'Data envio p/ análise Wehandle',                     // U
-  'Dias sem confirmação',                               // V - calculado
-  'Situação prazo Wehandle',                            // W - calculado
-  'Consistência do status',                             // X - calculado
-  'Resultado análise',                                  // Y
-  'Motivo reprovação',                                  // Z
-  'Data aprovação',                                     // AA
-  'Data integração agendada',                           // AB
-  'Responsável ADM',                                    // AC
-  'WhatsApp contato',                                   // AD
-  'Clientes / projetos em que já atuou',                // AE
-  'Observações',                                        // AF
-  'CPF (só números)',                                   // AG - calculado
-  'CNPJ (só números)',                                  // AH - calculado
-  'Doc: Ordem de Serviço',                              // AI
-  'Doc: Ficha de Entrega de EPI',                       // AJ
-  'Doc: Treinamento NR-18',                             // AK
-  'Doc: Treinamento NR-06',                             // AL
-  'Doc: ASO',                                           // AM
-  'Doc: Foto',                                          // AN
-  'Doc: CNH (condicional - só quando a função exige)',  // AO
-  'Doc: Cadastro no eSocial (CLT)',                     // AP
-  'Doc: Contrato de Prestação de Serviço (PJ)',         // AQ
-  'Doc: APR (PJ)',                                      // AR
-  'Doc: Declaração Atendimento Leis Trabalhistas (PJ)', // AS
-  'Doc: Declaração Inexistência de Vínculo (PJ)',       // AT
-  'Doc: Declaração Inexistência de Riscos (PJ)',        // AU
-  'Doc: Relação dos Alojamentos (PJ)',                  // AV
-  'Doc: Cartão de Vacina',                              // AW
-  'Doc: Tipo Sanguíneo + Fator RH',                     // AX
-  'Doc: Apólice de Seguro',                             // AY
-  'Doc: Declaração de Riscos',                          // AZ
-  'Doc: Declaração de Não Obrigatoriedade de NRs',      // BA
-  'Doc: Declaração de N3 – Permissão de Trabalho',      // BB
+  'Data de entrada',                        // A  - gravada uma vez, na criação do cadastro
+  'Nome completo',                          // B
+  'CPF',                                    // C
+  'CNPJ (se PJ)',                           // D
+  'Tipo',                                   // E
+  'Cliente atual',                          // F
+  'Cargo / Função',                         // G
+  'Doc: RG ou CNH',                         // H
+  'Doc: Comprovante de Endereço',           // I
+  'Doc: Carteira de Trabalho (CLT)',        // J
+  'Doc: CCMEI (PJ)',                        // K
+  'Documentos completos?',                  // L  - calculado
+  'Status atual',                           // M
+  'Data envio p/ assinatura',               // N
+  'Dias aguardando assinatura',             // O  - calculado
+  'Alerta cobrança assinatura',             // P  - calculado
+  'Data cadastro empresa Wehandle (PJ)',    // Q
+  'Dias sem confirmação (PJ)',              // R  - calculado
+  'Alerta confirmação pendente (PJ)',       // S  - calculado
+  'Data envio p/ análise Wehandle',         // T
+  'Dias sem confirmação',                   // U  - calculado
+  'Situação prazo Wehandle',                // V  - calculado
+  'Consistência do status',                 // W  - calculado
+  'Resultado análise',                      // X
+  'Motivo reprovação',                      // Y
+  'Data aprovação',                         // Z
+  'Data integração agendada',               // AA
+  'Responsável ADM',                        // AB
+  'WhatsApp contato',                       // AC
+  'Clientes / projetos em que já atuou',    // AD
+  'Observações',                            // AE
+  'CPF (só números)',                       // AF - calculado
+  'CNPJ (só números)',                      // AG - calculado
+  'Doc: Ordem de Serviço',                  // AH
+  'Doc: Ficha de Entrega de EPI',           // AI
+  'Doc: Treinamento NR-18',                 // AJ
+  'Doc: Treinamento NR-06',                 // AK
+  'Doc: ASO',                               // AL
+  'Doc: Foto',                              // AM
+  'Doc: CNH (condicional - só quando a função exige)',  // AN
+  'Doc: Cadastro no eSocial (CLT)',         // AO
+  'Doc: Contrato de Prestação de Serviço (PJ)',         // AP
+  'Doc: APR (PJ)',                          // AQ
+  'Doc: Declaração Atendimento Leis Trabalhistas (PJ)', // AR
+  'Doc: Declaração Inexistência de Vínculo (PJ)',       // AS
+  'Doc: Declaração Inexistência de Riscos (PJ)',        // AT
+  'Doc: Relação dos Alojamentos (PJ)',      // AU
+  'Alerta verificação de conteúdo',         // AV - lista dos documentos com nome não conferido; ADM apaga ao revisar
+  'Doc: Cartão de Vacina',                              // AW - Motiva Pantanal, Alcoa, Via Brasil
+  'Doc: Tipo Sanguíneo + Fator RH',                     // AX - Motiva Pantanal
+  'Doc: Apólice de Seguro',                             // AY - Motiva Pantanal
+  'Doc: Declaração de Riscos',                          // AZ - Ecovias do Araguaia, Ecovias Capixaba, EcoRioMinas
+  'Doc: Declaração de Não Obrigatoriedade de NRs',      // BA - EPR, Nova 381, Nova 364
+  'Doc: Declaração de N3 – Permissão de Trabalho',      // BB - Nova 381
   'Cidade',                                             // BC - nova em 21/09/2026, ainda nao existe na planilha real
 ];
 
@@ -285,7 +285,7 @@ export const COLUNAS_KANBAN = [
 export const STATUS_VALIDOS = COLUNAS_KANBAN.flatMap((c) => c.status);
 
 export function colunaDoStatus(status) {
-  const alvo = (status || '').trim();
+  const alvo = String(status || '').trim();
   const col = COLUNAS_KANBAN.find((c) => c.status.includes(alvo));
   return col ? col.id : 'pendente';  // sem status reconhecido, trata como nao iniciado
 }

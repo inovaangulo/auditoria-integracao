@@ -51,7 +51,7 @@ export function renderizar(container) {
   const total = regs.length;
   const completos = regs.filter((r) => r['Documentos completos?'] === 'SIM').length;
   const comAlerta = regs.filter((r) => alertas(r).length > 0).length;
-  const aprovados = regs.filter((r) => (r['Status atual'] || '').trim() === 'Aprovado').length;
+  const aprovados = regs.filter((r) => String(r['Status atual'] || '').trim() === 'Aprovado').length;
 
   container.append(el('div', { class: 'kpis' }, [
     kpi(total, 'Colaboradores', ''),
@@ -81,7 +81,7 @@ export function renderizar(container) {
   const porEtapa = COLUNAS_KANBAN.map((c) => ({
     titulo: c.titulo,
     cor: c.cor,
-    n: regs.filter((r) => c.status.includes((r['Status atual'] || '').trim())).length,
+    n: regs.filter((r) => c.status.includes(String(r['Status atual'] || '').trim())).length,
   }));
 
   container.append(el('div', { class: 'cartao-secao' }, [
@@ -146,7 +146,7 @@ export function renderizar(container) {
   ]));
 
   // --- Vinculo indefinido -------------------------------------------------
-  const semVinculo = regs.filter((r) => !['CLT', 'PJ'].includes((r['Tipo'] || '').trim()));
+  const semVinculo = regs.filter((r) => !['CLT', 'PJ'].includes(String(r['Tipo'] || '').trim()));
   if (semVinculo.length) {
     container.append(el('div', { class: 'cartao-secao' }, [
       el('h3', { texto: 'Vínculo não definido' }),
