@@ -25,7 +25,7 @@ function pegarNos() {
     'faixaAviso', 'filtroBusca', 'filtroCliente', 'filtroCidade', 'filtroResponsavel', 'filtroTipo', 'filtroAlerta',
     'contadorGeral', 'carregando', 'kanban', 'painelKanban', 'painelDashboard',
     'painelLista', 'painelChecklist', 'abaKanban', 'abaDashboard', 'abaLista', 'abaChecklist', 'inputArquivo',
-    'btnGeradorPasta',
+    'btnGeradorPasta', 'btnAdicionarDocumento',
   ];
   for (const id of ids) nos[id] = document.getElementById(id);
 }
@@ -275,7 +275,8 @@ function ligarEventos() {
   nos.btnExportar.addEventListener('click', exportar);
   nos.btnConectar.addEventListener('click', conectar);
   nos.btnAtualizar.addEventListener('click', atualizar);
-  nos.btnGeradorPasta.addEventListener('click', geradorPasta.abrir);
+  nos.btnGeradorPasta.addEventListener('click', () => geradorPasta.abrir('novo'));
+  nos.btnAdicionarDocumento.addEventListener('click', () => geradorPasta.abrir('existente'));
 }
 
 async function iniciar() {

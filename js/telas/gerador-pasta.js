@@ -94,7 +94,10 @@ export function configurar() {
   nos.btnCriar.addEventListener('click', criarPasta);
 }
 
-export function abrir() {
+/** modoInicial: 'novo' (padrao) ou 'existente' - pedido da Sara, 24/09/2026,
+ *  pra um botao "Adicionar documento" abrir direto nesse modo, sem a pessoa
+ *  precisar clicar em "Colaborador existente" toda vez. */
+export function abrir(modoInicial = 'novo') {
   nos.vinculo.value = '';
   nos.nome.value = '';
   nos.doc.value = '';
@@ -109,11 +112,11 @@ export function abrir() {
   // "Colaborador existente" so' faz sentido com dados carregados de verdade.
   nos.modoContainer.hidden = !usaSharePoint;
   desenharListaArquivos();
-  definirModo('novo');
+  definirModo(usaSharePoint ? modoInicial : 'novo');
   nos.modal.hidden = false;
   nos.fundo.hidden = false;
   atualizar();
-  nos.nome.focus();
+  if (modo === 'existente') nos.buscaInput.focus(); else nos.nome.focus();
 }
 
 /** Alterna entre digitar os dados de um colaborador novo ou buscar um ja' existente. */
