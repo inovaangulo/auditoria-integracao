@@ -31,14 +31,10 @@ export const CONFIG = {
    * validos se a planilha for renomeada ou movida dentro da mesma biblioteca.
    */
   planilha: {
-    // Item antigo (01Y3M4WXOWDJYHXU6LYJEZLV6MB2WQCLCN) sumiu - passou a dar 404
-    // (arquivo original foi excluido, nao so' renomeado/movido, senao o ID teria
-    // sobrevivido). Sara confirmou em 24/09/2026 que esse arquivo novo e' o
-    // valido agora - mesma pasta PROJETOS_IA/ADM, mesmo driveId de sempre.
     driveId: 'b!zHcvxaJ_3EWeu_IIcSkJGJse6zz--aVBtoGM9o_wvxZ5Uk_kTBwJQZamP3oQiS9m',
-    itemId: '01Y3M4WXPQCKXKVMIJTJD3N3CXK6KMPTY3',
+    itemId: '01Y3M4WXOWDJYHXU6LYJEZLV6MB2WQCLCN',
     aba: 'Cadastro de Documentos',
-    webUrl: 'https://angulosocialbr.sharepoint.com/sites/AUTOMACAOINOVACAO/Documentos%20Compartilhados/PROJETOS_IA/ADM/Painel_Controle_Integracao_Trivia_Tabela_backup_2026-07-29.xlsx',
+    webUrl: 'https://angulosocialbr.sharepoint.com/sites/AUTOMACAOINOVACAO/Documentos%20Compartilhados/PROJETOS_IA/ADM/Painel_Controle_Integracao_Trivia_Tabela.xlsx',
   },
 
   /** Quantas alteracoes guardar no historico de cada colaborador. */
