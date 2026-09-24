@@ -16,7 +16,7 @@
  */
 
 import { estado, aoMudar, salvarRegistro, chave } from '../dados/index.js';
-import { OPCOES_TIPODOC, registroVazio, CAMPOS_POR_ABREV } from '../schema.js';
+import { OPCOES_TIPODOC, registroVazio, CAMPOS_POR_ABREV, VERIFICAR_NOME_POR_ABREV } from '../schema.js';
 import { el, limpar, forcarMaiusculo } from '../ui.js';
 
 const nos = {};
@@ -396,16 +396,74 @@ async function cadastrarNoKanban(nomePasta) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Conferencia de conteudo no navegador - mesma heuristica de
+// AuditoriaIntegracaoAutomacao/scripts/sincronizar-documentos.mjs (verificaNome/
+// tokensNome), so' que rodando na hora do envio em vez de esperar a
+// sincronizacao. Se a logica de conferencia mudar num lado, mudar no outro.
+// ---------------------------------------------------------------------------
+
+const STOPWORDS_NOME = new Set(['de', 'da', 'do', 'dos', 'das', 'e']);
+
+function stripAccents(s) {
+  return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function norm(s) {
+  return stripAccents(s).toLowerCase();
+}
+function tokensNome(nomeCompleto) {
+  return norm(nomeCompleto).split(/\s+/).filter((t) => t.length >= 3 && !STOPWORDS_NOME.has(t));
+}
+
+/** true/false/null (null = nao deu pra conferir - sem texto legivel). */
+function verificaNome(texto, tokens) {
+  if (!tokens.length || !texto || !texto.trim()) return null;
+  const textoNorm = norm(texto);
+  const encontrados = tokens.filter((t) => textoNorm.includes(t));
+  return encontrados.length / tokens.length >= 0.6;
+}
+
+let pdfjsPromise = null;
+/** Carrega o pdf.js (Mozilla) via CDN so' quando precisar - a maioria dos usos do app nunca chega aqui. */
+function carregarPdfjs() {
+  if (!pdfjsPromise) {
+    pdfjsPromise = import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs').then((mod) => {
+      mod.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
+      return mod;
+    });
+  }
+  return pdfjsPromise;
+}
+
+/** Extrai o texto de um PDF no navegador. null se nao for PDF ou nao der pra ler (protegido/corrompido/escaneado sem OCR). */
+async function textoDoPdf(arquivo) {
+  if (!arquivo.name.toLowerCase().endsWith('.pdf')) return null;
+  try {
+    const pdfjs = await carregarPdfjs();
+    const doc = await pdfjs.getDocument({ data: await arquivo.arrayBuffer() }).promise;
+    let texto = '';
+    for (let i = 1; i <= doc.numPages; i++) {
+      const conteudo = await (await doc.getPage(i)).getTextContent();
+      texto += conteudo.items.map((it) => it.str).join(' ') + '\n';
+    }
+    return texto;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Marca na hora, na planilha, os documentos que acabaram de ser enviados -
- * mesmo reconhecimento por TIPODOC que a sincronizacao automatica faz (
- * CAMPOS_POR_ABREV), so' que sem a conferencia de conteudo (isso exige ler o
- * PDF, que so' a sincronizacao faz hoje). Por isso entra sempre como
- * "Pendente de conferência manual", nunca "Conferido automaticamente" -
- * quando a sincronizacao rodar de verdade, ela confere o conteudo e pode
- * promover pra automatico, ou deixar como esta'. Nunca rebaixa um status ja'
- * confirmado (automatico/manual). Pedido da Sara (24/09/2026): o ADM precisa
- * ver o documento como recebido na hora, sem esperar a proxima sincronizacao.
+ * mesmo reconhecimento por TIPODOC que a sincronizacao automatica faz
+ * (CAMPOS_POR_ABREV) e, pros tipos que valem a pena (VERIFICAR_NOME_POR_ABREV),
+ * a mesma conferencia de conteudo - le' o PDF e confere se o nome do
+ * colaborador aparece, promovendo pra "Conferido automaticamente" na hora
+ * quando bate. Quando nao bate ou nao da' pra ler, fica "Pendente de
+ * conferência manual" com o mesmo alerta cinza que a sincronizacao geraria.
+ * Nunca rebaixa um status ja' confirmado (automatico/manual). A sincronizacao
+ * agendada continua existindo como rede de seguranca (ex.: documento
+ * enviado direto pelo SharePoint, sem passar pelo app). Pedido da Sara,
+ * 24/09/2026: tudo isso em tempo real, sem esperar a proxima sincronizacao.
  */
 async function marcarDocumentosRecebidos(itensEnviados) {
   if (!itensEnviados.length) return;
@@ -414,19 +472,55 @@ async function marcarDocumentosRecebidos(itensEnviados) {
   if (!atual) return; // cadastro ainda nao existe na memoria (ex.: falhou ao criar) - sincronizacao resolve depois
 
   const editado = { ...atual };
+  const tokens = tokensNome(editado['Nome completo']);
+  const divergentes = new Set(
+    String(editado['Alerta verificação de conteúdo'] || '').split(',').map((s) => s.trim()).filter(Boolean)
+  );
   let mudou = false;
+  let algumConferido = false;
+
   for (const item of itensEnviados) {
-    for (const campo of CAMPOS_POR_ABREV[tipoEfetivo(item)] || []) {
-      if (editado[campo] === 'Conferido automaticamente' || editado[campo] === 'Conferido manualmente') continue;
-      editado[campo] = 'Pendente de conferência manual';
-      mudou = true;
+    const abrev = tipoEfetivo(item);
+    const campos = CAMPOS_POR_ABREV[abrev] || [];
+    if (!campos.length) continue;
+    if (campos.every((c) => editado[c] === 'Conferido automaticamente' || editado[c] === 'Conferido manualmente')) continue;
+
+    let statusNovo = 'Pendente de conferência manual';
+    if (VERIFICAR_NOME_POR_ABREV[abrev] !== false) {
+      item.status = 'Conferindo conteúdo…';
+      desenharListaArquivos();
+      const confere = verificaNome(await textoDoPdf(item.arquivo), tokens);
+      if (confere === true) {
+        statusNovo = 'Conferido automaticamente';
+        algumConferido = true;
+        divergentes.delete(abrev);
+        divergentes.delete(`${abrev} (não verificável)`);
+      } else if (confere === false) {
+        divergentes.add(abrev);
+      } else {
+        divergentes.add(`${abrev} (não verificável)`);
+      }
     }
+    for (const campo of campos) {
+      if (editado[campo] !== statusNovo) { editado[campo] = statusNovo; mudou = true; }
+    }
+  }
+
+  const alertaJunto = [...divergentes].join(', ');
+  if (alertaJunto !== (editado['Alerta verificação de conteúdo'] || '')) {
+    editado['Alerta verificação de conteúdo'] = alertaJunto;
+    mudou = true;
   }
   if (!mudou) return;
 
   try {
     await salvarRegistro(editado, atual);
-    nos.resultado.append(el('p', { class: 'alerta ok', texto: 'Status atualizado na planilha na hora.' }));
+    nos.resultado.append(el('p', {
+      class: 'alerta ok',
+      texto: algumConferido
+        ? 'Conferido automaticamente na hora — o nome bateu com o conteúdo do documento.'
+        : 'Status atualizado na hora.',
+    }));
   } catch (err) {
     nos.resultado.append(el('p', {
       class: 'alerta atencao',
