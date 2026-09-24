@@ -16,7 +16,7 @@
  */
 
 import { estado, aoMudar, salvarRegistro, chave } from '../dados/index.js';
-import { OPCOES_TIPODOC, registroVazio } from '../schema.js';
+import { OPCOES_TIPODOC, registroVazio, CAMPOS_POR_ABREV } from '../schema.js';
 import { el, limpar, forcarMaiusculo } from '../ui.js';
 
 const nos = {};
@@ -396,6 +396,45 @@ async function cadastrarNoKanban(nomePasta) {
   }
 }
 
+/**
+ * Marca na hora, na planilha, os documentos que acabaram de ser enviados -
+ * mesmo reconhecimento por TIPODOC que a sincronizacao automatica faz (
+ * CAMPOS_POR_ABREV), so' que sem a conferencia de conteudo (isso exige ler o
+ * PDF, que so' a sincronizacao faz hoje). Por isso entra sempre como
+ * "Pendente de conferência manual", nunca "Conferido automaticamente" -
+ * quando a sincronizacao rodar de verdade, ela confere o conteudo e pode
+ * promover pra automatico, ou deixar como esta'. Nunca rebaixa um status ja'
+ * confirmado (automatico/manual). Pedido da Sara (24/09/2026): o ADM precisa
+ * ver o documento como recebido na hora, sem esperar a proxima sincronizacao.
+ */
+async function marcarDocumentosRecebidos(itensEnviados) {
+  if (!itensEnviados.length) return;
+  const chaveAlvo = chave({ CPF: nos.doc.value, 'Nome completo': nos.nome.value });
+  const atual = estado.registros.find((r) => chave(r) === chaveAlvo);
+  if (!atual) return; // cadastro ainda nao existe na memoria (ex.: falhou ao criar) - sincronizacao resolve depois
+
+  const editado = { ...atual };
+  let mudou = false;
+  for (const item of itensEnviados) {
+    for (const campo of CAMPOS_POR_ABREV[tipoEfetivo(item)] || []) {
+      if (editado[campo] === 'Conferido automaticamente' || editado[campo] === 'Conferido manualmente') continue;
+      editado[campo] = 'Pendente de conferência manual';
+      mudou = true;
+    }
+  }
+  if (!mudou) return;
+
+  try {
+    await salvarRegistro(editado, atual);
+    nos.resultado.append(el('p', { class: 'alerta ok', texto: 'Status atualizado na planilha na hora.' }));
+  } catch (err) {
+    nos.resultado.append(el('p', {
+      class: 'alerta atencao',
+      texto: `Documento(s) enviado(s), mas não deu pra atualizar o status agora (${err.message}). A próxima sincronização automática corrige sozinha.`,
+    }));
+  }
+}
+
 async function criarPasta() {
   if (criando || estado.atualizacaoPendente || !estado.fonte?.criarOuAcharPastaColaborador) return;
   criando = true;
@@ -434,6 +473,7 @@ async function criarPasta() {
         class: `alerta ${sucesso === arquivos.length ? 'ok' : 'atencao'}`,
         texto: `${sucesso} de ${arquivos.length} documento(s) enviados.`,
       }));
+      await marcarDocumentosRecebidos(arquivos.filter((a) => a.status === 'Enviado ✓'));
     }
   } catch (err) {
     nos.resultado.append(el('p', { class: 'alerta atencao', texto: err.message }));
